@@ -18,6 +18,54 @@ st.set_page_config(
     layout="wide"
 )
 
+# ============================================================================
+# XÁC THỰC ADMIN
+# ============================================================================
+def check_password():
+    """Kiểm tra mật khẩu để vào Dashboard."""
+    
+    def password_entered():
+        """Kiểm tra mật khẩu đã nhập."""
+        if st.session_state["password"] == st.secrets.get("admin_password", "admin123"):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Xóa mật khẩu khỏi session
+        else:
+            st.session_state["password_correct"] = False
+
+    # Nếu chưa kiểm tra mật khẩu
+    if "password_correct" not in st.session_state:
+        st.title("🔐 Đăng nhập Dashboard")
+        st.markdown("---")
+        st.warning("⚠️ Trang này chỉ dành cho quản trị viên Sở Y tế.")
+        st.text_input(
+            "Nhập mật khẩu:", 
+            type="password", 
+            on_change=password_entered, 
+            key="password"
+        )
+        return False
+    
+    # Nếu mật khẩu sai
+    elif not st.session_state["password_correct"]:
+        st.title("🔐 Đăng nhập Dashboard")
+        st.markdown("---")
+        st.warning("⚠️ Trang này chỉ dành cho quản trị viên Sở Y tế.")
+        st.text_input(
+            "Nhập mật khẩu:", 
+            type="password", 
+            on_change=password_entered, 
+            key="password"
+        )
+        st.error("❌ Mật khẩu không đúng!")
+        return False
+    
+    # Mật khẩu đúng
+    return True
+
+# Kiểm tra mật khẩu trước khi hiển thị Dashboard
+if not check_password():
+    st.stop()
+
 st.title("📊 Dashboard tổng hợp báo cáo")
 st.markdown("---")
 
