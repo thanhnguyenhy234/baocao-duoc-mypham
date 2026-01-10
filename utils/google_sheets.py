@@ -278,6 +278,28 @@ def save_pdf_link(facility_name: str, pdf_link: str):
     return True
 
 
+def save_pdf_info(facility_name: str, filename: str, filesize: int):
+    """Save PDF file info (không upload, chỉ lưu thông tin)."""
+    spreadsheet = get_spreadsheet()
+    if not spreadsheet:
+        return False
+    
+    headers = ["Thời gian nộp", "Tên cơ sở", "Tên file", "Kích thước (KB)", "Ghi chú"]
+    
+    worksheet = get_or_create_worksheet(spreadsheet, "File PDF", headers)
+    
+    row = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        facility_name,
+        filename,
+        round(filesize / 1024, 2),
+        "Đã upload - cần gửi file qua email"
+    ]
+    
+    worksheet.append_row(row)
+    return True
+
+
 def get_all_facilities():
     """Get all facilities data."""
     spreadsheet = get_spreadsheet()

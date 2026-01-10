@@ -7,9 +7,8 @@ sys.path.insert(0, '..')
 
 from utils.google_sheets import (
     save_facility_info, save_form_01, save_form_02, save_form_03,
-    save_form_04, save_form_05, save_form_06, save_pdf_link
+    save_form_04, save_form_05, save_form_06, save_pdf_info
 )
-from utils.google_drive import upload_pdf_to_drive
 
 st.set_page_config(
     page_title="Nhập báo cáo | Sở Y tế Phú Thọ",
@@ -268,15 +267,13 @@ if submit_button:
                 elif loai_co_so == "Cơ sở SX-KD mỹ phẩm":
                     save_form_06(ten_co_so, form_06_data)
                 
-                # Upload PDF if provided
+                # Save PDF info if provided (không upload, chỉ lưu thông tin)
                 if uploaded_file:
-                    pdf_link = upload_pdf_to_drive(
-                        uploaded_file.getvalue(),
+                    save_pdf_info(
+                        ten_co_so,
                         uploaded_file.name,
-                        ten_co_so
+                        uploaded_file.size
                     )
-                    if pdf_link:
-                        save_pdf_link(ten_co_so, pdf_link)
                 
                 st.success("✅ Đã gửi báo cáo thành công!")
                 st.balloons()
