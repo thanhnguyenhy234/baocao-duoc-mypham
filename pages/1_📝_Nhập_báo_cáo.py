@@ -9,6 +9,7 @@ from utils.google_sheets import (
     save_facility_info, save_form_01, save_form_02, save_form_03,
     save_form_04, save_form_05, save_form_06, save_pdf_info
 )
+from utils.discord_webhook import upload_pdf_to_discord
 
 st.set_page_config(
     page_title="Nhập báo cáo | Sở Y tế Phú Thọ",
@@ -211,11 +212,15 @@ st.header("📎 Upload file PDF (Văn bản ký số/scan)")
 uploaded_file = st.file_uploader(
     "Chọn file PDF báo cáo có chữ ký và đóng dấu",
     type=["pdf"],
-    help="File PDF tối đa 10MB"
+    help="File PDF tối đa 10MB (giới hạn Discord)"
 )
 
 if uploaded_file:
-    st.success(f"✅ Đã chọn file: {uploaded_file.name} ({uploaded_file.size / 1024:.1f} KB)")
+    file_size_mb = uploaded_file.size / (1024 * 1024)
+    if file_size_mb > 10:
+        st.error(f"❌ File quá lớn: {file_size_mb:.2f} MB. Giới hạn tối đa 10MB.")
+    else:
+        st.success(f"✅ Đã chọn file: {uploaded_file.name} ({file_size_mb:.2f} MB)")
 
 st.markdown("---")
 
@@ -267,13 +272,22 @@ if submit_button:
                 elif loai_co_so == "Cơ sở SX-KD mỹ phẩm":
                     save_form_06(ten_co_so, form_06_data)
                 
-                # Save PDF info if provided (không upload, chỉ lưu thông tin)
+                # Save PDF info and upload to Discord if provided
                 if uploaded_file:
-                    save_pdf_info(
-                        ten_co_so,
-                        uploaded_file.name,
-                        uploaded_file.size
-                    )
+                    file_size_mb = uploaded_file.size / (1024 * 1024)
+                    if file_size_mb <= 10:
+                        # Upload to Discord
+                        discord_result = upload_pdf_to_discord(
+                            uploaded_file.getvalue(),
+                            uploaded_file.name,
+                            ten_co_so,
+                            loai_co_so
+                        )
+                        if discord_result:
+                            save_pdf_info(ten_co_so, uploaded_file.name, uploaded_file.size)
+                            st.info("📤 File PDF đã được gửi qua Discord!")
+                    else:
+                        st.warning(f"⚠️ File quá lớn ({file_size_mb:.2f} MB), không thể gửi qua Discord.")
                 
                 st.success("✅ Đã gửi báo cáo thành công!")
                 st.balloons()
