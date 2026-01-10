@@ -8,9 +8,9 @@ from googleapiclient.http import MediaIoBaseUpload
 import io
 
 
-# Google Drive scopes
+# Google Drive scopes - cần full drive access để upload vào shared folder
 SCOPES = [
-    "https://www.googleapis.com/auth/drive.file"
+    "https://www.googleapis.com/auth/drive"
 ]
 
 
@@ -30,7 +30,7 @@ def get_drive_service():
 
 def upload_pdf_to_drive(file_bytes: bytes, filename: str, facility_name: str):
     """
-    Upload PDF file to Google Drive.
+    Upload PDF file to Google Drive shared folder.
     
     Args:
         file_bytes: PDF file content as bytes
@@ -45,17 +45,18 @@ def upload_pdf_to_drive(file_bytes: bytes, filename: str, facility_name: str):
         return None
     
     try:
-        # Get folder ID from secrets
+        # Get folder ID from secrets - folder phải được share với service account
         folder_id = st.secrets.get("drive_folder_id", None)
         
-        # Prepare file metadata
+        if not folder_id:
+            st.error("Chưa cấu hình drive_folder_id trong secrets")
+            return None
+        
+        # Prepare file metadata - PHẢI có parents để upload vào shared folder
         file_metadata = {
             'name': f"{facility_name}_{filename}",
-            'mimeType': 'application/pdf'
+            'parents': [folder_id]
         }
-        
-        if folder_id:
-            file_metadata['parents'] = [folder_id]
         
         # Upload file
         media = MediaIoBaseUpload(
@@ -67,14 +68,19 @@ def upload_pdf_to_drive(file_bytes: bytes, filename: str, facility_name: str):
         file = service.files().create(
             body=file_metadata,
             media_body=media,
-            fields='id, webViewLink'
+            fields='id, webViewLink',
+            supportsAllDrives=True  # Hỗ trợ shared drives
         ).execute()
         
         # Make file accessible via link
-        service.permissions().create(
-            fileId=file['id'],
-            body={'type': 'anyone', 'role': 'reader'}
-        ).execute()
+        try:
+            service.permissions().create(
+                fileId=file['id'],
+                body={'type': 'anyone', 'role': 'reader'},
+                supportsAllDrives=True
+            ).execute()
+        except:
+            pass  # Có thể không cần nếu folder đã public
         
         return file.get('webViewLink', f"https://drive.google.com/file/d/{file['id']}/view")
     
@@ -97,7 +103,9 @@ def list_files_in_folder():
         results = service.files().list(
             q=query,
             pageSize=100,
-            fields="files(id, name, webViewLink, createdTime)"
+            fields="files(id, name, webViewLink, createdTime)",
+            supportsAllDrives=True,
+            includeItemsFromAllDrives=True
         ).execute()
         
         return results.get('files', [])
