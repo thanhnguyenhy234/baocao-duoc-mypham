@@ -146,10 +146,10 @@ cols = st.columns(3)
 for i, (num, name, target) in enumerate(forms_data):
     with cols[i % 3]:
         st.markdown(f"""
-        <div style="background-color: #F3F4F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; min-height: 120px;">
-            <strong>Biểu mẫu {num}</strong><br>
-            <span style="font-size: 0.9rem;">{name}</span><br>
-            <span style="font-size: 0.8rem; color: #6B7280;">📌 {target}</span>
+        <div style="background-color: #FFFFFF; border: 2px solid #3B82F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; min-height: 120px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <strong style="color: #1E40AF; font-size: 1.1rem;">Biểu mẫu {num}</strong><br>
+            <span style="font-size: 0.9rem; color: #1F2937;">{name}</span><br>
+            <span style="font-size: 0.8rem; color: #059669; font-weight: 500;">📌 {target}</span>
         </div>
         """, unsafe_allow_html=True)
 
