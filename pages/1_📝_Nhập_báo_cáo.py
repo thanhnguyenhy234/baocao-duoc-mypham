@@ -242,7 +242,9 @@ if submit_button:
         errors.append("Vui lòng nhập địa chỉ")
     if loai_co_so == "-- Chọn loại cơ sở --":
         errors.append("Vui lòng chọn loại cơ sở")
-    
+    if not uploaded_file:
+        errors.append("Vui lòng đính kèm file PDF báo cáo có chữ ký và đóng dấu")
+
     if errors:
         for error in errors:
             st.error(f"❌ {error}")
