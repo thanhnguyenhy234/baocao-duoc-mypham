@@ -81,7 +81,7 @@ with col2:
     st.markdown("""
     **Báo cáo năm 2025:**
     
-    ⏰ Hạn nộp: **15/01/2026**
+    ⏰ Hạn nộp: **17/01/2026**
     
     Số liệu tính đến: 31/12/2025
     """)
@@ -134,12 +134,13 @@ st.divider()
 st.markdown("### 📑 Các biểu mẫu báo cáo")
 
 forms_data = [
-    ("01", "Tình hình nhân lực làm công tác dược lâm sàng", "Cơ sở KCB"),
-    ("02", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Cơ sở KCB"),
-    ("03", "Tình hình sử dụng thuốc sản xuất trong nước", "Cơ sở KCB"),
-    ("04", "Tình hình chất lượng thuốc, nguyên liệu làm thuốc", "TT Kiểm nghiệm"),
-    ("05", "Hệ thống cung ứng thuốc và nhân lực dược", "Cơ sở SX-KD dược"),
-    ("06", "Giá trị sản xuất, nhập khẩu mỹ phẩm", "Cơ sở SX-KD mỹ phẩm"),
+    ("I", "Tình hình nhân lực làm công tác dược lâm sàng", "Đơn vị y tế, UBND xã/phường"),
+    ("II", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Đơn vị y tế, UBND xã/phường"),
+    ("III", "Tình hình sử dụng thuốc sản xuất trong nước", "Đơn vị y tế, UBND xã/phường"),
+    ("IV", "Tình hình chất lượng thuốc, nguyên liệu làm thuốc", "TT Kiểm nghiệm"),
+    ("V", "Nhân lực dược", "Cơ sở bán buôn thuốc, UBND xã/phường"),
+    ("VI", "Hệ thống cung ứng thuốc", "UBND xã/phường"),
+    ("VII", "Giá trị sản xuất, nhập khẩu mỹ phẩm", "Cơ sở SX-KD mỹ phẩm"),
 ]
 
 cols = st.columns(3)
@@ -147,7 +148,7 @@ for i, (num, name, target) in enumerate(forms_data):
     with cols[i % 3]:
         st.markdown(f"""
         <div style="background-color: #FFFFFF; border: 2px solid #3B82F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; min-height: 120px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <strong style="color: #1E40AF; font-size: 1.1rem;">Biểu mẫu {num}</strong><br>
+            <strong style="color: #1E40AF; font-size: 1.1rem;">Phụ lục {num}</strong><br>
             <span style="font-size: 0.9rem; color: #1F2937;">{name}</span><br>
             <span style="font-size: 0.8rem; color: #059669; font-weight: 500;">📌 {target}</span>
         </div>
