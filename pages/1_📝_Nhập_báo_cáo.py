@@ -216,7 +216,7 @@ def render_form_06():
 def render_form_07():
     """Phụ lục VII: Giá trị sản xuất, nhập khẩu mỹ phẩm"""
     st.header("📋 Phụ lục VII: Giá trị sản xuất, nhập khẩu mỹ phẩm")
-    st.caption("Số liệu tính đến 31/12/2025 | Đơn vị: VNĐ")
+    st.caption("Số liệu tính đến 31/12/2025 | Đơn vị: Triệu đồng")
 
     col1, col2 = st.columns(2)
 
