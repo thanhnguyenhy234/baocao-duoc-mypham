@@ -398,6 +398,3 @@ if submit_button:
             except Exception as e:
                 st.error(f"❌ Lỗi khi gửi báo cáo: {e}")
 
-# Show success message if submitted
-if st.session_state.submitted:
-    st.info("📝 Bạn có thể xem báo cáo đã nộp tại trang Dashboard.")
