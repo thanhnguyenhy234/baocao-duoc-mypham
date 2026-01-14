@@ -258,6 +258,31 @@ def save_form_06(facility_name: str, data: dict):
     return True
 
 
+def save_form_07(facility_name: str, data: dict):
+    """Save Form 07 - Phụ lục VII: Giá trị SX, nhập khẩu mỹ phẩm."""
+    spreadsheet = get_spreadsheet()
+    if not spreadsheet:
+        return False
+    
+    headers = [
+        "Thời gian nộp", "Tên cơ sở", "Giá trị nhập khẩu",
+        "Giá trị sản xuất", "Số phiếu công bố"
+    ]
+    
+    worksheet = get_or_create_worksheet(spreadsheet, "Phụ lục VII - Mỹ phẩm", headers)
+    
+    row = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        facility_name,
+        data.get("gia_tri_nhap_khau", 0),
+        data.get("gia_tri_san_xuat", 0),
+        data.get("so_phieu_cong_bo", 0)
+    ]
+    
+    worksheet.append_row(row)
+    return True
+
+
 def save_pdf_link(facility_name: str, pdf_link: str):
     """Save PDF file link."""
     spreadsheet = get_spreadsheet()
