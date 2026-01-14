@@ -17,6 +17,12 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
+    html, body, [class*="css"] {
+        font-size: 14px !important;
+    }
+    .stMarkdown, .stText, p, li, span {
+        font-size: 14px !important;
+    }
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;

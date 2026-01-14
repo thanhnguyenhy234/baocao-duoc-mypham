@@ -19,6 +19,18 @@ st.set_page_config(
 )
 
 st.title("📝 Nhập báo cáo thống kê dược - mỹ phẩm")
+
+st.markdown("""
+<style>
+    html, body, [class*="css"] {
+        font-size: 14px !important;
+    }
+    .stMarkdown, .stText, p, li, span, label {
+        font-size: 14px !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 st.markdown("---")
 
 # Initialize session state
