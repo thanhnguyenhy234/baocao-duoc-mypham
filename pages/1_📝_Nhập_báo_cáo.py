@@ -22,11 +22,21 @@ st.title("📝 Nhập báo cáo thống kê dược - mỹ phẩm")
 
 st.markdown("""
 <style>
-    html, body, [class*="css"] {
-        font-size: 14px !important;
+    .stApp, .main, .block-container {
+        font-size: 16px !important;
     }
-    .stMarkdown, .stText, p, li, span, label {
-        font-size: 14px !important;
+    .stMarkdown p, .stMarkdown li, .stMarkdown span,
+    .element-container p, .element-container li,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] li {
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+    }
+    label, .stSelectbox label, .stTextInput label, .stNumberInput label {
+        font-size: 16px !important;
+    }
+    .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
+        font-size: 16px !important;
     }
 </style>
 """, unsafe_allow_html=True)

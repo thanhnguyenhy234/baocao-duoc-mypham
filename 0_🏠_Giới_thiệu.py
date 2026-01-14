@@ -17,11 +17,18 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
-    html, body, [class*="css"] {
-        font-size: 14px !important;
+    .stApp, .main, .block-container {
+        font-size: 16px !important;
     }
-    .stMarkdown, .stText, p, li, span {
-        font-size: 14px !important;
+    .stMarkdown p, .stMarkdown li, .stMarkdown span,
+    .element-container p, .element-container li,
+    div[data-testid="stMarkdownContainer"] p,
+    div[data-testid="stMarkdownContainer"] li {
+        font-size: 16px !important;
+        line-height: 1.6 !important;
+    }
+    label, .stSelectbox label, .stTextInput label, .stNumberInput label {
+        font-size: 16px !important;
     }
     .main-header {
         font-size: 2.5rem;
