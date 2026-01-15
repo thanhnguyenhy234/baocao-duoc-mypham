@@ -35,8 +35,9 @@ def upload_pdf_to_discord(file_bytes: bytes, filename: str, facility_name: str, 
     
     try:
         # Prepare message content
-        from datetime import datetime
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        from datetime import datetime, timezone, timedelta
+        vietnam_tz = timezone(timedelta(hours=7))
+        timestamp = datetime.now(vietnam_tz).strftime("%Y-%m-%d %H:%M:%S")
         
         message_content = f"""📄 **BÁO CÁO MỚI**
         
