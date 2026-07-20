@@ -1,5 +1,13 @@
 """
-Google Sheets utility functions for the reporting system.
+Google Sheets utility functions - Báo cáo 6 tháng đầu năm 2026.
+
+Schema áp dụng cho 3 phụ lục theo cv_bao_cao_thong_ke_duoc_my_pham.tex:
+  - Phụ lục I  : Giá trị thuốc đã sử dụng            (đơn vị y tế / bệnh viện)
+  - Phụ lục II : Tình hình sử dụng thuốc SX trong nước (đơn vị y tế / bệnh viện)
+  - Phụ lục III: Tình hình CL thuốc, NL làm thuốc     (Trung tâm Kiểm nghiệm)
+
+Sheet name có prefix "6T2026 -" để không trộn với dữ liệu báo cáo năm
+(tách biệt cả trong cùng 1 spreadsheet).
 """
 import streamlit as st
 import gspread
@@ -8,7 +16,6 @@ import pandas as pd
 from datetime import datetime
 
 
-# Google Sheets scopes
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
@@ -16,33 +23,28 @@ SCOPES = [
 
 
 def get_google_client():
-    """Get authenticated Google Sheets client."""
     try:
         credentials = Credentials.from_service_account_info(
             st.secrets["gcp_service_account"],
             scopes=SCOPES
         )
-        client = gspread.authorize(credentials)
-        return client
+        return gspread.authorize(credentials)
     except Exception as e:
         st.error(f"Lỗi kết nối Google Sheets: {e}")
         return None
 
 
 def get_spreadsheet():
-    """Get the main spreadsheet."""
     client = get_google_client()
     if client:
         try:
-            spreadsheet = client.open_by_key(st.secrets["spreadsheet_id"])
-            return spreadsheet
+            return client.open_by_key(st.secrets["spreadsheet_id"])
         except Exception as e:
             st.error(f"Lỗi mở spreadsheet: {e}")
     return None
 
 
 def get_or_create_worksheet(spreadsheet, sheet_name, headers=None):
-    """Get worksheet by name, create if not exists."""
     try:
         worksheet = spreadsheet.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
@@ -53,18 +55,16 @@ def get_or_create_worksheet(spreadsheet, sheet_name, headers=None):
 
 
 def save_facility_info(data: dict):
-    """Save facility information to Google Sheets."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
-    
+
     headers = [
-        "Thời gian nộp", "Tên cơ sở", "Địa chỉ", "Điện thoại", 
+        "Thời gian nộp", "Tên cơ sở", "Địa chỉ", "Điện thoại",
         "Email", "Loại cơ sở", "Người đại diện"
     ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Danh sách cơ sở", headers)
-    
+    worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Danh sách cơ sở", headers)
+
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         data.get("ten_co_so", ""),
@@ -74,53 +74,24 @@ def save_facility_info(data: dict):
         data.get("loai_co_so", ""),
         data.get("nguoi_dai_dien", "")
     ]
-    
     worksheet.append_row(row)
     return True
 
 
-def save_form_01(facility_name: str, data: dict):
-    """Save Form 01 - Nhân lực dược lâm sàng."""
+def save_phuluc_01(facility_name: str, data: dict):
+    """Phụ lục I: Giá trị thuốc đã sử dụng (Biểu 4/BCT - 06 tháng)."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
-    
-    headers = [
-        "Thời gian nộp", "Tên cơ sở", "Tổng số", "Sau ĐH dược", 
-        "ĐH dược", "Khác", "Số kiêm nhiệm", "Số có CCHN"
-    ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 01 - Nhân lực DLS", headers)
-    
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        facility_name,
-        data.get("tong_so", 0),
-        data.get("sau_dh", 0),
-        data.get("dh", 0),
-        data.get("khac", 0),
-        data.get("kiem_nhiem", 0),
-        data.get("co_cchn", 0)
-    ]
-    
-    worksheet.append_row(row)
-    return True
 
-
-def save_form_02(facility_name: str, data: dict):
-    """Save Form 02 - Giá trị thuốc sử dụng."""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        return False
-    
     headers = [
-        "Thời gian nộp", "Tên cơ sở", "Tổng giá trị", "Biệt dược gốc",
-        "Generic", "Dược liệu", "Kháng sinh", "Vắc xin", 
-        "Sinh phẩm", "Phóng xạ", "BHYT", "Viện trợ"
+        "Thời gian nộp", "Tên cơ sở", "Tổng giá trị sử dụng thuốc",
+        "Thuốc biệt dược gốc", "Thuốc generic", "Thuốc dược liệu",
+        "Kháng sinh", "Vắc xin", "Sinh phẩm", "Thuốc phóng xạ",
+        "Giá trị thuốc BHYT", "Thuốc viện trợ"
     ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 02 - Giá trị thuốc", headers)
-    
+    worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Phụ lục I - Giá trị thuốc", headers)
+
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
@@ -135,25 +106,23 @@ def save_form_02(facility_name: str, data: dict):
         data.get("bhyt", 0),
         data.get("vien_tro", 0)
     ]
-    
     worksheet.append_row(row)
     return True
 
 
-def save_form_03(facility_name: str, data: dict):
-    """Save Form 03 - Thuốc sản xuất trong nước."""
+def save_phuluc_02(facility_name: str, data: dict):
+    """Phụ lục II: Tình hình sử dụng thuốc SX trong nước (Biểu 5/BCT - 06 tháng)."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
-    
+
     headers = [
-        "Thời gian nộp", "Tên cơ sở", "SL thuốc trúng thầu", 
-        "SL thuốc SX trong nước", "Tỷ lệ SL (%)", 
-        "Tổng giá trị", "Giá trị thuốc SX trong nước", "Tỷ lệ GT (%)"
+        "Thời gian nộp", "Tên cơ sở",
+        "SL thuốc trúng thầu", "SL thuốc SX trong nước trúng thầu", "Tỷ lệ SL (%)",
+        "Tổng số tiền thuốc sử dụng", "Tổng số tiền thuốc SX trong nước", "Tỷ lệ GT (%)"
     ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 03 - Thuốc trong nước", headers)
-    
+    worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Phụ lục II - Thuốc trong nước", headers)
+
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
@@ -164,25 +133,38 @@ def save_form_03(facility_name: str, data: dict):
         data.get("gt_trong_nuoc", 0),
         data.get("ty_le_gt", 0)
     ]
-    
     worksheet.append_row(row)
     return True
 
 
-def save_form_04(facility_name: str, data: dict):
-    """Save Form 04 - Chất lượng thuốc."""
+def save_phuluc_03(facility_name: str, data: dict):
+    """Phụ lục III: Tình hình CL thuốc, NL làm thuốc (Biểu 3/BCT - 06 tháng).
+
+    Bao gồm 4 phân loại thuốc giả theo tex:
+      - SP cơ sở SX trong nước
+      - SP cơ sở SX nước ngoài
+      - Không chứa hoạt chất
+      - Bao bì nhãn mác
+    """
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
-    
+
     headers = [
-        "Thời gian nộp", "Tên cơ sở", "Số mẫu kiểm tra", 
-        "Số mẫu không đạt", "Mức độ 1", "Mức độ 2", "Mức độ 3",
-        "Tỷ lệ không đạt (%)", "Số lô thuốc giả", "Tỷ lệ thuốc giả (%)"
+        "Thời gian nộp", "Tên cơ sở",
+        "Số mẫu lấy kiểm tra CL",
+        "Số mẫu không đạt tiêu chuẩn CL",
+        "Vi phạm mức độ 1", "Vi phạm mức độ 2", "Vi phạm mức độ 3",
+        "Tỷ lệ mẫu thuốc không đạt CL (%)",
+        "Số lô thuốc giả phát hiện được",
+        "Tỷ lệ thuốc giả (%)",
+        "Giả - SP cơ sở SX trong nước (%)",
+        "Giả - SP cơ sở SX nước ngoài (%)",
+        "Giả - Không chứa hoạt chất (%)",
+        "Giả - Bao bì nhãn mác (%)"
     ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 04 - Chất lượng thuốc", headers)
-    
+    worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Phụ lục III - CL thuốc", headers)
+
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
@@ -193,126 +175,24 @@ def save_form_04(facility_name: str, data: dict):
         data.get("muc_do_3", 0),
         data.get("ty_le_khong_dat", 0),
         data.get("so_lo_gia", 0),
-        data.get("ty_le_gia", 0)
+        data.get("ty_le_gia", 0),
+        data.get("gia_nn", 0),
+        data.get("gia_tn", 0),
+        data.get("gia_khong_hoat_chat", 0),
+        data.get("gia_bao_bi", 0)
     ]
-    
-    worksheet.append_row(row)
-    return True
-
-
-def save_form_05(facility_name: str, data: dict):
-    """Save Form 05 - Hệ thống cung ứng thuốc."""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        return False
-    
-    headers = [
-        "Thời gian nộp", "Tên cơ sở", "CS bán buôn", "Tổng CS bán lẻ",
-        "Nhà thuốc", "Quầy thuốc", "Tủ thuốc TYT",
-        "TS/DSCKII", "ThS/DSCKI", "DSĐH", "DSCĐ/TH", "Dược tá"
-    ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 05 - Cung ứng thuốc", headers)
-    
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        facility_name,
-        data.get("cs_ban_buon", 0),
-        data.get("tong_cs_ban_le", 0),
-        data.get("nha_thuoc", 0),
-        data.get("quay_thuoc", 0),
-        data.get("tu_thuoc_tyt", 0),
-        data.get("ts_dsckii", 0),
-        data.get("ths_dscki", 0),
-        data.get("dsdh", 0),
-        data.get("dscd_th", 0),
-        data.get("duoc_ta", 0)
-    ]
-    
-    worksheet.append_row(row)
-    return True
-
-
-def save_form_06(facility_name: str, data: dict):
-    """Save Form 06 - Sản xuất mỹ phẩm."""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        return False
-    
-    headers = [
-        "Thời gian nộp", "Tên cơ sở", "Giá trị nhập khẩu",
-        "Giá trị sản xuất", "Số phiếu công bố"
-    ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Biểu mẫu 06 - Mỹ phẩm", headers)
-    
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        facility_name,
-        data.get("gia_tri_nhap_khau", 0),
-        data.get("gia_tri_san_xuat", 0),
-        data.get("so_phieu_cong_bo", 0)
-    ]
-    
-    worksheet.append_row(row)
-    return True
-
-
-def save_form_07(facility_name: str, data: dict):
-    """Save Form 07 - Phụ lục VII: Giá trị SX, nhập khẩu mỹ phẩm."""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        return False
-    
-    headers = [
-        "Thời gian nộp", "Tên cơ sở", "Giá trị nhập khẩu",
-        "Giá trị sản xuất", "Số phiếu công bố"
-    ]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "Phụ lục VII - Mỹ phẩm", headers)
-    
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        facility_name,
-        data.get("gia_tri_nhap_khau", 0),
-        data.get("gia_tri_san_xuat", 0),
-        data.get("so_phieu_cong_bo", 0)
-    ]
-    
-    worksheet.append_row(row)
-    return True
-
-
-def save_pdf_link(facility_name: str, pdf_link: str):
-    """Save PDF file link."""
-    spreadsheet = get_spreadsheet()
-    if not spreadsheet:
-        return False
-    
-    headers = ["Thời gian nộp", "Tên cơ sở", "Link file PDF"]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "File PDF", headers)
-    
-    row = [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        facility_name,
-        pdf_link
-    ]
-    
     worksheet.append_row(row)
     return True
 
 
 def save_pdf_info(facility_name: str, filename: str, filesize: int):
-    """Save PDF file info (không upload, chỉ lưu thông tin)."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
-    
+
     headers = ["Thời gian nộp", "Tên cơ sở", "Tên file", "Kích thước (KB)", "Ghi chú"]
-    
-    worksheet = get_or_create_worksheet(spreadsheet, "File PDF", headers)
-    
+    worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - File PDF", headers)
+
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
@@ -320,58 +200,42 @@ def save_pdf_info(facility_name: str, filename: str, filesize: int):
         round(filesize / 1024, 2),
         "Đã upload - cần gửi file qua email"
     ]
-    
     worksheet.append_row(row)
     return True
 
 
 def get_all_facilities():
-    """Get all facilities data."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return pd.DataFrame()
-    
     try:
-        worksheet = spreadsheet.worksheet("Danh sách cơ sở")
+        worksheet = spreadsheet.worksheet("6T2026 - Danh sách cơ sở")
         data = worksheet.get_all_records()
         return pd.DataFrame(data)
-    except:
+    except Exception:
         return pd.DataFrame()
 
 
 def get_form_data(sheet_name: str):
-    """Get data from a specific form sheet."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return pd.DataFrame()
-    
     try:
         worksheet = spreadsheet.worksheet(sheet_name)
         data = worksheet.get_all_records()
         return pd.DataFrame(data)
-    except:
+    except Exception:
         return pd.DataFrame()
 
 
 def get_statistics():
-    """Get statistics for dashboard."""
+    """Thống kê cho dashboard 6 tháng - chỉ 2 loại cơ sở."""
     facilities = get_all_facilities()
-    
     if facilities.empty:
-        return {
-            "total": 0,
-            "kcb": 0,
-            "kiem_nghiem": 0,
-            "sx_kd_duoc": 0,
-            "sx_kd_my_pham": 0
-        }
-    
-    stats = {
+        return {"total": 0, "yte": 0, "kiem_nghiem": 0}
+
+    return {
         "total": len(facilities),
-        "kcb": len(facilities[facilities["Loại cơ sở"] == "Cơ sở khám bệnh, chữa bệnh"]),
-        "kiem_nghiem": len(facilities[facilities["Loại cơ sở"] == "Trung tâm Kiểm nghiệm"]),
-        "sx_kd_duoc": len(facilities[facilities["Loại cơ sở"] == "Cơ sở SX-KD dược"]),
-        "sx_kd_my_pham": len(facilities[facilities["Loại cơ sở"] == "Cơ sở SX-KD mỹ phẩm"])
+        "yte": len(facilities[facilities["Loại cơ sở"] == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện"]),
+        "kiem_nghiem": len(facilities[facilities["Loại cơ sở"] == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"])
     }
-    
-    return stats
