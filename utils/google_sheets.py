@@ -185,23 +185,64 @@ def save_phuluc_03(facility_name: str, data: dict):
     return True
 
 
-def save_pdf_info(facility_name: str, filename: str, filesize: int):
+def save_pdf_info(facility_name: str, filename: str, filesize: int,
+                  drive_link: str = "", drive_id: str = ""):
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
 
-    headers = ["Thời gian nộp", "Tên cơ sở", "Tên file", "Kích thước (KB)", "Ghi chú"]
+    # Schema có 2 cột mới ở cuối (Link Drive, Drive File ID) dùng cho Dashboard đối chiếu PDF.
+    headers = ["Thời gian nộp", "Tên cơ sở", "Tên file", "Kích thước (KB)",
+               "Ghi chú", "Link Drive", "Drive File ID"]
     worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - File PDF", headers)
 
+    ghi_chu = "Đã upload lên Drive" if drive_link else "Chỉ gửi Discord - chưa có link Drive"
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
         filename,
         round(filesize / 1024, 2),
-        "Đã upload - cần gửi file qua email"
+        ghi_chu,
+        drive_link,
+        drive_id
     ]
     worksheet.append_row(row)
     return True
+
+
+def get_pdf_link(facility_name: str):
+    """Trả về (drive_link, drive_id) mới nhất của cơ sở trong sheet 'File PDF'.
+
+    Returns:
+        tuple(str, str): (link, id); ("", "") nếu không có hoặc thiếu cấu hình.
+    """
+    spreadsheet = get_spreadsheet()
+    if not spreadsheet:
+        return "", ""
+    try:
+        worksheet = spreadsheet.worksheet("6T2026 - File PDF")
+        data = worksheet.get_all_records()
+    except Exception:
+        return "", ""
+    if not data:
+        return "", ""
+    df = pd.DataFrame(data)
+    df = df[df["Tên cơ sở"] == facility_name]
+    if df.empty:
+        return "", ""
+    # Lấy bản mới nhất (dòng cuối cùng theo thời gian nộp)
+    last = df.iloc[-1]
+    link = str(last.get("Link Drive", "") or "")
+    file_id = str(last.get("Drive File ID", "") or "")
+    if not link:
+        return "", ""
+    # Nếu có link nhưng thiếu id (do link cũ), cố suy id từ webViewLink
+    if not file_id and "file/d/" in link:
+        try:
+            file_id = link.split("file/d/")[1].split("/")[0]
+        except Exception:
+            file_id = ""
+    return link, file_id
 
 
 def get_all_facilities():

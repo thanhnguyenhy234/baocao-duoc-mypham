@@ -22,9 +22,11 @@ from utils.google_sheets import (
     save_facility_info,
     save_phuluc_01, save_phuluc_02, save_phuluc_03,
     save_pdf_info,
-    get_statistics, get_all_facilities, get_form_data
+    get_statistics, get_all_facilities, get_form_data,
+    get_pdf_link
 )
 from utils.discord_webhook import upload_pdf_to_discord
+from utils.google_drive import upload_pdf_to_drive
 
 # Page config
 st.set_page_config(
@@ -53,29 +55,60 @@ st.markdown("""
     .stTextInput input, .stNumberInput input, .stSelectbox > div > div {
         font-size: 20px !important;
     }
+    /* Tiêu đề chính: hero banner SÁNG - xanh ngọc/trắng, tươi và nhẹ */
     .main-header {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #1E3A8A;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #0C4A6E;
         text-align: center;
+        background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 50%, #7DD3FC 100%);
+        padding: 1.5rem 1rem;
+        border-radius: 0.75rem;
+        border-top: 5px solid #06B6D4;
+        border-bottom: 5px solid #06B6D4;
         margin-bottom: 0.5rem;
+        box-shadow: 0 6px 16px rgba(6,182,212,0.25);
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        letter-spacing: 0.5px;
+        line-height: 1.2;
     }
+    /* Phụ đề: xanh teal đậm trên nền ngọc nhạt, sáng và nổi */
     .sub-header {
-        font-size: 1.2rem;
-        color: #6B7280;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0E7490;
         text-align: center;
+        background-color: #ECFEFF;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border: 2px solid #22D3EE;
         margin-bottom: 2rem;
     }
+    /* Heading Streamlit: tông sáng, tương phản tốt trên nền trắng */
+    .stApp h1 {
+        color: #0C4A6E !important;
+        font-weight: 800 !important;
+    }
+    .stApp h2 {
+        color: #0369A1 !important;
+        font-weight: 700 !important;
+        border-bottom: 3px solid #38BDF8;
+        padding-bottom: 0.3rem;
+    }
+    .stApp h3 {
+        color: #0F766E !important;
+        font-weight: 700 !important;
+    }
     .info-box {
-        background-color: #F0F9FF;
-        border-left: 4px solid #0EA5E9;
+        background-color: #ECFEFF;
+        border-left: 4px solid #06B6D4;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
     .warning-box {
-        background-color: #FEF3C7;
-        border-left: 4px solid #F59E0B;
+        background-color: #FEF9C3;
+        border-left: 4px solid #FACC15;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
@@ -136,19 +169,24 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 forms_data = [
-    ("I", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Đơn vị y tế, Bệnh viện"),
-    ("II", "Tình hình sử dụng thuốc sản xuất trong nước", "Đơn vị y tế, Bệnh viện"),
-    ("III", "Tình hình CL thuốc, nguyên liệu làm thuốc lưu hành", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"),
+    ("I", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Đơn vị y tế, Bệnh viện",
+     "#0284C7", "#F0F9FF", "#38BDF8", "#0EA5E9"),
+    ("II", "Tình hình sử dụng thuốc sản xuất trong nước", "Đơn vị y tế, Bệnh viện",
+     "#059669", "#ECFDF5", "#34D399", "#10B981"),
+    ("III", "Tình hình CL thuốc, nguyên liệu làm thuốc lưu hành", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ",
+     "#7C3AED", "#F5F3FF", "#A78BFA", "#8B5CF6"),
 ]
 
 cols = st.columns(3)
-for i, (num, name, target) in enumerate(forms_data):
+for i, (num, name, target, head_color, bg_color, accent_color, border_color) in enumerate(forms_data):
     with cols[i]:
         st.markdown(f"""
-        <div style="background-color: #FFFFFF; border: 2px solid #3B82F6; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; min-height: 160px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <strong style="color: #1E40AF; font-size: 1.1rem;">Phụ lục {num}</strong><br>
-            <span style="font-size: 0.9rem; color: #1F2937;">{name}</span><br>
-            <span style="font-size: 0.8rem; color: #059669; font-weight: 500;">📌 {target}</span>
+        <div style="background-color: {bg_color}; border: 3px solid {border_color}; padding: 1.25rem; border-radius: 0.75rem; margin-bottom: 1rem; min-height: 190px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <div style="display: inline-block; background-color: #FFFFFF; color: {head_color}; font-weight: 800; font-size: 1.4rem; padding: 0.25rem 1rem; border-radius: 0.5rem; margin-bottom: 0.75rem; border: 2px solid {accent_color};">
+                Phụ lục {num}
+            </div><br>
+            <span style="font-size: 1.05rem; color: #0F172A; font-weight: 600;">{name}</span><br>
+            <span style="font-size: 0.9rem; color: #065F46; font-weight: 600; background-color: #D1FAE5; padding: 0.15rem 0.5rem; border-radius: 0.3rem; display: inline-block; margin-top: 0.5rem;">📌 {target}</span>
         </div>
         """, unsafe_allow_html=True)
 
@@ -328,6 +366,19 @@ st.markdown("---")
 # ---------- Nút Gửi ----------
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
+    st.markdown("""
+    <style>
+        div.stButton > button[kind="primary"] {
+            font-size: 1.5rem !important;
+            font-weight: 800 !important;
+            padding: 1rem 1rem !important;
+            height: auto !important;
+            min-height: 70px !important;
+            border: 3px solid #06B6D4 !important;
+            box-shadow: 0 4px 12px rgba(6,182,212,0.35) !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
     submit_button = st.button("✅ GỬI BÁO CÁO", type="primary", use_container_width=True)
 
 if submit_button:
@@ -365,6 +416,27 @@ if submit_button:
 
                 if uploaded_file:
                     file_size_mb = uploaded_file.size / (1024 * 1024)
+
+                    # 1) Lưu PDF lên Google Drive trước để có link đối chiếu trong Dashboard.
+                    #    Nếu thiếu secrets Drive thì upload_link="" -> Dashboard vẫn có thể
+                    #    hiển thị qua Discord fallback (không crash).
+                    drive_link = ""
+                    drive_id = ""
+                    try:
+                        drive_link = upload_pdf_to_drive(
+                            uploaded_file.getvalue(),
+                            uploaded_file.name,
+                            ten_co_so
+                        )
+                        if drive_link and "file/d/" in drive_link:
+                            try:
+                                drive_id = drive_link.split("file/d/")[1].split("/")[0]
+                            except Exception:
+                                drive_id = ""
+                    except Exception as e:
+                        st.warning(f"⚠️ Không lưu được PDF lên Drive: {e}")
+
+                    # 2) Vẫn gửi Discord (log + backup file).
                     if file_size_mb <= 10:
                         discord_result = upload_pdf_to_discord(
                             uploaded_file.getvalue(),
@@ -372,11 +444,24 @@ if submit_button:
                             ten_co_so,
                             loai_co_so
                         )
-                        if discord_result:
-                            save_pdf_info(ten_co_so, uploaded_file.name, uploaded_file.size)
-                            st.info("📤 File PDF đã được gửi qua Discord!")
+                        if discord_result or drive_link:
+                            save_pdf_info(
+                                ten_co_so, uploaded_file.name, uploaded_file.size,
+                                drive_link=drive_link, drive_id=drive_id
+                            )
+                            if drive_link:
+                                st.info(f"📤 File PDF đã lưu lên Google Drive để admin đối chiếu.")
+                            if discord_result:
+                                st.info("📤 File PDF đã được gửi qua Discord!")
                     else:
-                        st.warning(f"⚠️ File quá lớn ({file_size_mb:.2f} MB), không thể gửi qua Discord.")
+                        # File lớn không qua Discord được, nhưng vẫn có thể lưu Drive.
+                        if drive_link:
+                            save_pdf_info(
+                                ten_co_so, uploaded_file.name, uploaded_file.size,
+                                drive_link=drive_link, drive_id=drive_id
+                            )
+                            st.info("📤 File PDF đã lưu lên Google Drive.")
+                        st.warning(f"⚠️ File quá lớn ({file_size_mb:.2f} MB), không gửi được qua Discord.")
 
                 st.success("✅ Đã gửi báo cáo thành công!")
                 st.balloons()
@@ -566,21 +651,81 @@ if not facilities_df.empty:
 
         st.markdown("---")
 
-        for sheet_name, title in [
-            ("6T2026 - Phụ lục I - Giá trị thuốc", "Phụ lục I: Giá trị thuốc đã sử dụng"),
-            ("6T2026 - Phụ lục II - Thuốc trong nước", "Phụ lục II: Thuốc sản xuất trong nước"),
-            ("6T2026 - Phụ lục III - CL thuốc", "Phụ lục III: Tình hình CL thuốc")
-        ]:
-            try:
-                df = get_form_data(sheet_name)
-                data = df[df["Tên cơ sở"] == selected_facility]
-                if not data.empty:
-                    st.subheader(f"📋 {title}")
-                    st.dataframe(data, use_container_width=True, hide_index=True)
-            except Exception:
-                pass
-else:
-    st.info("Chưa có dữ liệu để hiển thị")
+        # ----- Phần Đối chiếu PDF vs số liệu (mắt quét song song 2 cột) -----
+        st.markdown("---")
+        st.header("🔍 Đối chiếu PDF scan với số liệu đã nhập")
+        st.caption("So mắt: cột trái = số liệu nhập qua web, cột phải = bản scan PDF đính kèm.")
+
+        pdf_link, pdf_id = "", ""
+        try:
+            pdf_link, pdf_id = get_pdf_link(selected_facility)
+        except Exception:
+            pdf_link, pdf_id = "", ""
+
+        # Ratio [1, 1]: 2 cột cân. PDF cần cao để cuộn được => dùng height lớn.
+        col_data, col_pdf = st.columns([1, 1], gap="large")
+
+        # ---- Cột trái: số liệu transpose (mỗi dòng 1 chỉ tiêu) ----
+        with col_data:
+            st.markdown("#### 📊 Số liệu đã nhập")
+            has_any_data = False
+            for sheet_name, title in [
+                ("6T2026 - Phụ lục I - Giá trị thuốc", "Phụ lục I: Giá trị thuốc"),
+                ("6T2026 - Phụ lục II - Thuốc trong nước", "Phụ lục II: Thuốc trong nước"),
+                ("6T2026 - Phụ lục III - CL thuốc", "Phụ lục III: CL thuốc")
+            ]:
+                try:
+                    df = get_form_data(sheet_name)
+                    data = df[df["Tên cơ sở"] == selected_facility]
+                    if data.empty:
+                        continue
+                    has_any_data = True
+                    st.markdown(f"**📋 {title}**")
+                    # Bỏ cột "Thời gian nộp" và "Tên cơ sở" (đã biết rồi) trước khi transpose.
+                    drop_cols = [c for c in ["Thời gian nộp", "Tên cơ sở"] if c in data.columns]
+                    data_view = data.drop(columns=drop_cols)
+                    # Transpose: mỗi dòng 1 chỉ tiêu -> dễ đối chiếu theo hàng với tờ scan.
+                    transposed = data_view.T.reset_index()
+                    transposed.columns = ["Chỉ tiêu", "Giá trị"]
+                    # Bọc giá trị số thành chuỗi để hiển thị chuẩn (giữ 2 số lẻ nếu là float).
+                    def _fmt(v):
+                        try:
+                            f = float(v)
+                            if f == int(f):
+                                return str(int(f))
+                            return f"{f:.2f}"
+                        except (ValueError, TypeError):
+                            return str(v)
+                    transposed["Giá trị"] = transposed["Giá trị"].apply(_fmt)
+                    st.dataframe(
+                        transposed,
+                        use_container_width=True,
+                        hide_index=True,
+                        height=min(400, 38 * len(transposed) + 40)
+                    )
+                except Exception:
+                    pass
+            if not has_any_data:
+                st.info("Chưa có số liệu Phụ lục cho cơ sở này.")
+
+        # ---- Cột phải: PDF viewer qua Google Drive preview iframe ----
+        with col_pdf:
+            st.markdown("#### 📄 Bản scan PDF đính kèm")
+            if pdf_link and pdf_id:
+                # Link mở full tab mới (trình duyệt PDF đầy đủ, tải/xem/in).
+                st.markdown(f"🔗 [Mở PDF đầy đủ trong tab mới]({pdf_link})")
+                # Drive preview iframe: trình duyệt tự render PDF, không cần lib server-side.
+                preview_url = f"https://drive.google.com/file/d/{pdf_id}/preview"
+                st.components.v1.html(
+                    f'<iframe src="{preview_url}" style="width:100%; height:780px; border:1px solid #e5e7eb; border-radius:0.5rem;" allow="autoplay"></iframe>',
+                    height=800
+                )
+            elif pdf_link:
+                # Có link nhưng không tách được id (link lạ) -> fallback mở tab.
+                st.markdown(f"🔗 [Mở PDF trong tab mới]({pdf_link})")
+                st.info("Link PDF không dùng được cho viewer nội tuyến — mở tab mới để xem.")
+            else:
+                st.warning("⚠️ Chưa có PDF đính kèm cho cơ sở này (hoặc Google Drive chưa cấu hình).")
 
 # ---------- Xuất báo cáo ----------
 st.markdown("---")
