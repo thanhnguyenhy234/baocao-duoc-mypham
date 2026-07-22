@@ -62,14 +62,24 @@ def save_facility_info(data: dict):
 
     headers = [
         "Thời gian nộp", "Tên cơ sở", "Địa chỉ", "Điện thoại",
-        "Email", "Loại cơ sở", "Người đại diện", "Tính chất"
+        "Email", "Đối tượng báo cáo", "Người đại diện", "Loại hình"
     ]
     worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Danh sách cơ sở", headers)
-    # Bổ sung header cột mới nếu sheet cũ chưa có
+    # Đổi tên header cũ + bổ sung cột mới nếu sheet cũ chưa có
     try:
         existing = worksheet.row_values(1)
-        if existing and "Tính chất" not in existing:
-            worksheet.update_cell(1, len(existing) + 1, "Tính chất")
+        if existing:
+            rename_map = {
+                "Loại cơ sở": "Đối tượng báo cáo",
+                "Tính chất": "Loại hình",
+            }
+            for old_name, new_name in rename_map.items():
+                if old_name in existing and new_name not in existing:
+                    col_idx = existing.index(old_name) + 1
+                    worksheet.update_cell(1, col_idx, new_name)
+                    existing[col_idx - 1] = new_name
+            if "Loại hình" not in existing:
+                worksheet.update_cell(1, len(existing) + 1, "Loại hình")
     except Exception:
         pass
 
@@ -278,7 +288,7 @@ def get_form_data(sheet_name: str):
 
 
 def get_statistics():
-    """Thống kê cho dashboard 6 tháng - chỉ 2 loại cơ sở."""
+    """Thống kê cho dashboard 6 tháng - chỉ 2 đối tượng báo cáo."""
     facilities = get_all_facilities()
     if facilities.empty:
         return {"total": 0, "yte": 0, "kiem_nghiem": 0}
@@ -287,8 +297,11 @@ def get_statistics():
         "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ",
         "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện",  # nhãn cũ (nếu còn)
     }
+    col = "Đối tượng báo cáo" if "Đối tượng báo cáo" in facilities.columns else "Loại cơ sở"
+    if col not in facilities.columns:
+        return {"total": len(facilities), "yte": 0, "kiem_nghiem": 0}
     return {
         "total": len(facilities),
-        "yte": int(facilities["Loại cơ sở"].isin(yte_labels).sum()) if "Loại cơ sở" in facilities.columns else 0,
-        "kiem_nghiem": len(facilities[facilities["Loại cơ sở"] == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"]) if "Loại cơ sở" in facilities.columns else 0,
+        "yte": int(facilities[col].isin(yte_labels).sum()),
+        "kiem_nghiem": len(facilities[facilities[col] == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"]),
     }

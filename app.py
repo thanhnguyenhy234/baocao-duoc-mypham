@@ -211,16 +211,16 @@ with col2:
     dien_thoai = st.text_input("Số điện thoại", placeholder="0xxx.xxx.xxx")
     email = st.text_input("Email", placeholder="example@email.com")
     loai_co_so = st.selectbox(
-        "Loại cơ sở *",
+        "Đối tượng báo cáo *",
         options=[
-            "-- Chọn loại cơ sở --",
+            "-- Chọn đối tượng báo cáo --",
             "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ",
             "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"
         ]
     )
     tinh_chat = st.selectbox(
-        "Tính chất cơ sở *",
-        options=["-- Chọn tính chất --", "Công lập", "Tư nhân"]
+        "Loại hình *",
+        options=["-- Chọn loại hình --", "Công lập", "Tư nhân"]
     )
 
 st.markdown("---")
@@ -334,7 +334,7 @@ def render_phuluc_03():
     return form_03_data
 
 
-# ---------- Hiển thị form theo loại cơ sở ----------
+# ---------- Hiển thị form theo đối tượng báo cáo ----------
 if loai_co_so == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ":
     st.info("📋 Đơn vị y tế / Bệnh viện / CDC báo cáo: Phụ lục I, II")
     form_01_data = render_phuluc_01()
@@ -346,7 +346,7 @@ elif loai_co_so == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ":
     form_03_data = render_phuluc_03()
 
 else:
-    st.info("👆 Vui lòng chọn loại cơ sở để hiển thị các biểu mẫu tương ứng.")
+    st.info("👆 Vui lòng chọn đối tượng báo cáo để hiển thị các biểu mẫu tương ứng.")
 
 st.markdown("---")
 
@@ -391,10 +391,10 @@ if submit_button:
         errors.append("Vui lòng nhập tên cơ sở")
     if not dia_chi:
         errors.append("Vui lòng nhập địa chỉ")
-    if loai_co_so == "-- Chọn loại cơ sở --":
-        errors.append("Vui lòng chọn loại cơ sở")
-    if tinh_chat == "-- Chọn tính chất --":
-        errors.append("Vui lòng chọn tính chất cơ sở (công lập/tư nhân)")
+    if loai_co_so == "-- Chọn đối tượng báo cáo --":
+        errors.append("Vui lòng chọn đối tượng báo cáo")
+    if tinh_chat == "-- Chọn loại hình --":
+        errors.append("Vui lòng chọn loại hình (công lập/tư nhân)")
     if not uploaded_file:
         errors.append("Vui lòng đính kèm file PDF báo cáo có chữ ký và đóng dấu")
 
@@ -522,16 +522,16 @@ st.markdown("---")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("📊 Phân bố theo loại cơ sở")
+    st.subheader("📊 Phân bố theo đối tượng báo cáo")
     if stats["total"] > 0:
         chart_data = {
-            "Loại cơ sở": ["Đơn vị y tế / BV / CDC", "Trung tâm Kiểm nghiệm"],
+            "Đối tượng báo cáo": ["Đơn vị y tế / BV / CDC", "Trung tâm Kiểm nghiệm"],
             "Số lượng": [stats["yte"], stats["kiem_nghiem"]]
         }
         fig = px.pie(
             chart_data,
             values="Số lượng",
-            names="Loại cơ sở",
+            names="Đối tượng báo cáo",
             color_discrete_sequence=px.colors.qualitative.Set2
         )
         fig.update_traces(textposition='inside', textinfo='percent+value')
@@ -581,7 +581,7 @@ if not facilities_df.empty:
         search_term = st.text_input("🔍 Tìm kiếm theo tên cơ sở", "", key="adm_search")
     with col2:
         filter_type = st.selectbox(
-            "Lọc theo loại cơ sở",
+            "Lọc theo đối tượng báo cáo",
             ["Tất cả", "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"],
             key="adm_filter"
         )
@@ -594,7 +594,9 @@ if not facilities_df.empty:
     if search_term:
         filtered_df = filtered_df[filtered_df["Tên cơ sở"].str.contains(search_term, case=False, na=False)]
     if filter_type != "Tất cả":
-        filtered_df = filtered_df[filtered_df["Loại cơ sở"] == filter_type]
+        _doi_tuong_col = "Đối tượng báo cáo" if "Đối tượng báo cáo" in filtered_df.columns else "Loại cơ sở"
+        if _doi_tuong_col in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df[_doi_tuong_col] == filter_type]
 
     st.dataframe(
         filtered_df,
@@ -634,10 +636,12 @@ if not facilities_df.empty:
             **Email:** {facility_info.get('Email', 'N/A')}
             """)
         with col2:
+            _doi_tuong_col = "Đối tượng báo cáo" if "Đối tượng báo cáo" in facility_info.index else "Loại cơ sở"
+            _loai_hinh_col = "Loại hình" if "Loại hình" in facility_info.index else "Tính chất"
             st.markdown(f"""
-            **Loại cơ sở:** {facility_info.get('Loại cơ sở', 'N/A')}
+            **Đối tượng báo cáo:** {facility_info.get(_doi_tuong_col, facility_info.get('Loại cơ sở', 'N/A'))}
 
-            **Tính chất:** {facility_info.get('Tính chất', 'N/A')}
+            **Loại hình:** {facility_info.get(_loai_hinh_col, facility_info.get('Tính chất', 'N/A'))}
 
             **Người đại diện:** {facility_info.get('Người đại diện', 'N/A')}
 
