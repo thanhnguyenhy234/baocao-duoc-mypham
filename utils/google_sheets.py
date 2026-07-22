@@ -18,7 +18,8 @@ from datetime import datetime
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
+    # drive.file: tối thiểu để gspread tạo worksheet trong spreadsheet đã share
+    "https://www.googleapis.com/auth/drive.file",
 ]
 
 
@@ -61,9 +62,16 @@ def save_facility_info(data: dict):
 
     headers = [
         "Thời gian nộp", "Tên cơ sở", "Địa chỉ", "Điện thoại",
-        "Email", "Loại cơ sở", "Người đại diện"
+        "Email", "Loại cơ sở", "Người đại diện", "Tính chất"
     ]
     worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - Danh sách cơ sở", headers)
+    # Bổ sung header cột mới nếu sheet cũ chưa có
+    try:
+        existing = worksheet.row_values(1)
+        if existing and "Tính chất" not in existing:
+            worksheet.update_cell(1, len(existing) + 1, "Tính chất")
+    except Exception:
+        pass
 
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -72,7 +80,8 @@ def save_facility_info(data: dict):
         data.get("dien_thoai", ""),
         data.get("email", ""),
         data.get("loai_co_so", ""),
-        data.get("nguoi_dai_dien", "")
+        data.get("nguoi_dai_dien", ""),
+        data.get("tinh_chat", ""),
     ]
     worksheet.append_row(row)
     return True
@@ -186,63 +195,62 @@ def save_phuluc_03(facility_name: str, data: dict):
 
 
 def save_pdf_info(facility_name: str, filename: str, filesize: int,
-                  drive_link: str = "", drive_id: str = ""):
+                  local_path: str = ""):
+    """Ghi metadata PDF (path local Dropbox) vào sheet File PDF."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
         return False
 
-    # Schema có 2 cột mới ở cuối (Link Drive, Drive File ID) dùng cho Dashboard đối chiếu PDF.
+    # Giữ cột Link Drive / Drive File ID rỗng để không phá sheet cũ (nếu đã có).
     headers = ["Thời gian nộp", "Tên cơ sở", "Tên file", "Kích thước (KB)",
-               "Ghi chú", "Link Drive", "Drive File ID"]
+               "Ghi chú", "Link Drive", "Drive File ID", "Local path"]
     worksheet = get_or_create_worksheet(spreadsheet, "6T2026 - File PDF", headers)
+    try:
+        existing = worksheet.row_values(1)
+        if existing and "Local path" not in existing:
+            worksheet.update_cell(1, len(existing) + 1, "Local path")
+    except Exception:
+        pass
 
-    ghi_chu = "Đã upload lên Drive" if drive_link else "Chỉ gửi Discord - chưa có link Drive"
+    ghi_chu = "Đã lưu local Dropbox" if local_path else "Chỉ gửi Discord - chưa có local"
     row = [
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         facility_name,
         filename,
         round(filesize / 1024, 2),
         ghi_chu,
-        drive_link,
-        drive_id
+        "",  # Link Drive (bỏ dùng)
+        "",  # Drive File ID (bỏ dùng)
+        local_path,
     ]
     worksheet.append_row(row)
     return True
 
 
-def get_pdf_link(facility_name: str):
-    """Trả về (drive_link, drive_id) mới nhất của cơ sở trong sheet 'File PDF'.
-
-    Returns:
-        tuple(str, str): (link, id); ("", "") nếu không có hoặc thiếu cấu hình.
-    """
+def get_pdf_local_path(facility_name: str) -> str:
+    """Trả về đường dẫn PDF local mới nhất của cơ sở ('' nếu không có)."""
     spreadsheet = get_spreadsheet()
     if not spreadsheet:
-        return "", ""
+        return ""
     try:
         worksheet = spreadsheet.worksheet("6T2026 - File PDF")
         data = worksheet.get_all_records()
     except Exception:
-        return "", ""
+        return ""
     if not data:
-        return "", ""
+        return ""
     df = pd.DataFrame(data)
     df = df[df["Tên cơ sở"] == facility_name]
     if df.empty:
-        return "", ""
-    # Lấy bản mới nhất (dòng cuối cùng theo thời gian nộp)
+        return ""
     last = df.iloc[-1]
-    link = str(last.get("Link Drive", "") or "")
-    file_id = str(last.get("Drive File ID", "") or "")
-    if not link:
-        return "", ""
-    # Nếu có link nhưng thiếu id (do link cũ), cố suy id từ webViewLink
-    if not file_id and "file/d/" in link:
-        try:
-            file_id = link.split("file/d/")[1].split("/")[0]
-        except Exception:
-            file_id = ""
-    return link, file_id
+    return str(last.get("Local path", "") or "")
+
+
+# Alias cũ (nếu có code gọi nhầm) — chỉ trả local path ở phần tử 3
+def get_pdf_link(facility_name: str):
+    local = get_pdf_local_path(facility_name)
+    return "", "", local
 
 
 def get_all_facilities():
@@ -275,8 +283,12 @@ def get_statistics():
     if facilities.empty:
         return {"total": 0, "yte": 0, "kiem_nghiem": 0}
 
+    yte_labels = {
+        "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ",
+        "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện",  # nhãn cũ (nếu còn)
+    }
     return {
         "total": len(facilities),
-        "yte": len(facilities[facilities["Loại cơ sở"] == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện"]),
-        "kiem_nghiem": len(facilities[facilities["Loại cơ sở"] == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"])
+        "yte": int(facilities["Loại cơ sở"].isin(yte_labels).sum()) if "Loại cơ sở" in facilities.columns else 0,
+        "kiem_nghiem": len(facilities[facilities["Loại cơ sở"] == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"]) if "Loại cơ sở" in facilities.columns else 0,
     }

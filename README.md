@@ -4,6 +4,9 @@ Hệ thống thu thập báo cáo thống kê lĩnh vực dược - mỹ phẩm 
 
 ## Tính năng
 
+- PDF lưu local Dropbox trên Pi (đối chiếu dashboard), số liệu Google Sheets, thông báo Discord.
+
+
 - **Form nhập liệu trực quan**: Các cơ sở điền báo cáo theo biểu mẫu tương ứng với loại cơ sở
 - **Upload PDF**: Cơ sở upload file PDF ký số/scan
 - **Lưu trữ Google Sheets**: Dữ liệu được lưu tự động vào Google Sheets
@@ -32,7 +35,6 @@ pip install -r requirements.txt
 2. Tạo project mới
 3. Enable các APIs:
    - Google Sheets API
-   - Google Drive API
 
 #### Bước 3.2: Tạo Service Account
 1. Vào IAM & Admin > Service Accounts
@@ -56,7 +58,6 @@ Tạo file `.streamlit/secrets.toml`:
 
 ```toml
 spreadsheet_id = "YOUR_SPREADSHEET_ID"
-drive_folder_id = "YOUR_DRIVE_FOLDER_ID"
 
 [gcp_service_account]
 type = "service_account"
@@ -100,7 +101,6 @@ baocao-duoc-mypham/
 │   └── 2_📊_Dashboard.py     # Dashboard tổng hợp
 ├── utils/
 │   ├── google_sheets.py      # Kết nối Google Sheets
-│   └── google_drive.py       # Upload file lên Drive
 ├── .streamlit/
 │   └── secrets.toml          # Credentials (local only)
 ├── requirements.txt

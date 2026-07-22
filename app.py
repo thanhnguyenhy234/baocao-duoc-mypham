@@ -4,7 +4,7 @@ Sở Y tế tỉnh Phú Thọ - BÁO CÁO 6 THÁNG ĐẦU NĂM 2026
 
 Theo Thông tư số 25/2021/TT-BYT ngày 13/12/2021 của Bộ Y tế
 Kỳ báo cáo: 6 tháng đầu năm 2026 (01/01/2026 → 30/06/2026)
-Hạn nộp: 31/07/2026
+Hạn nộp: 25/07/2026
 
 3 phụ lục theo cv_bao_cao_thong_ke_duoc_my_pham.tex:
   - Phụ lục I  : Giá trị thuốc đã sử dụng            (Đơn vị y tế / Bệnh viện)
@@ -23,10 +23,10 @@ from utils.google_sheets import (
     save_phuluc_01, save_phuluc_02, save_phuluc_03,
     save_pdf_info,
     get_statistics, get_all_facilities, get_form_data,
-    get_pdf_link
+    get_pdf_local_path
 )
 from utils.discord_webhook import upload_pdf_to_discord
-from utils.google_drive import upload_pdf_to_drive
+from utils.local_pdf_store import save_pdf_local, read_pdf_local
 
 # Page config
 st.set_page_config(
@@ -141,7 +141,7 @@ with col1:
     st.markdown('<div class="info-box">', unsafe_allow_html=True)
     st.markdown("""
     **📌 Đối tượng báo cáo:**
-    - **Đơn vị y tế trực thuộc Sở Y tế; bệnh viện thuộc Bộ, ngành; bệnh viện tư nhân:** Phụ lục I, II
+    - **Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện / Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ:** Phụ lục I, II
     - **Trung tâm Kiểm nghiệm tỉnh Phú Thọ:** Phụ lục III
     """)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -152,7 +152,7 @@ with col2:
     st.markdown("""
     **Báo cáo 6 tháng đầu năm 2026:**
 
-    ⏰ Hạn nộp: **31/07/2026**
+    ⏰ Hạn nộp: **25/07/2026**
 
     📆 Kỳ báo cáo: 01/01/2026 → 30/06/2026
     """)
@@ -169,9 +169,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 forms_data = [
-    ("I", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Đơn vị y tế, Bệnh viện",
+    ("I", "Giá trị thuốc đã sử dụng trong cơ sở y tế", "Đơn vị y tế, Bệnh viện, CDC",
      "#0284C7", "#F0F9FF", "#38BDF8", "#0EA5E9"),
-    ("II", "Tình hình sử dụng thuốc sản xuất trong nước", "Đơn vị y tế, Bệnh viện",
+    ("II", "Tình hình sử dụng thuốc sản xuất trong nước", "Đơn vị y tế, Bệnh viện, CDC",
      "#059669", "#ECFDF5", "#34D399", "#10B981"),
     ("III", "Tình hình CL thuốc, nguyên liệu làm thuốc lưu hành", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ",
      "#7C3AED", "#F5F3FF", "#A78BFA", "#8B5CF6"),
@@ -214,9 +214,13 @@ with col2:
         "Loại cơ sở *",
         options=[
             "-- Chọn loại cơ sở --",
-            "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện",
+            "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ",
             "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"
         ]
+    )
+    tinh_chat = st.selectbox(
+        "Tính chất cơ sở *",
+        options=["-- Chọn tính chất --", "Công lập", "Tư nhân"]
     )
 
 st.markdown("---")
@@ -230,7 +234,7 @@ form_03_data = {}
 def render_phuluc_01():
     """Phụ lục I: Giá trị thuốc đã sử dụng (Biểu 4/BCT - 06 tháng)."""
     st.header("📋 Phụ lục I: Giá trị thuốc đã sử dụng trong cơ sở y tế")
-    st.caption("6 tháng đầu năm 2026 (01/01 → 30/06/2026) | Đơn vị tính: Triệu đồng")
+    st.caption("6 tháng đầu năm 2026 (01/01 → 30/06/2026) | Đơn vị tính: Nghìn đồng")
 
     col1, col2, col3 = st.columns(3)
 
@@ -271,7 +275,7 @@ def render_phuluc_02():
         st.metric("Tỷ lệ (%)", f"{form_02_data['ty_le_sl']}%")
 
     with col2:
-        st.subheader("Tính theo giá trị (triệu đồng)")
+        st.subheader("Tính theo giá trị (nghìn đồng)")
         form_02_data["tong_gia_tri"] = st.number_input("Tổng số tiền thuốc sử dụng", min_value=0.0, value=0.0, format="%.2f", key="f02_gt_tong")
         form_02_data["gt_trong_nuoc"] = st.number_input("Tổng số tiền thuốc SX trong nước", min_value=0.0, value=0.0, format="%.2f", key="f02_gt_tn")
         if form_02_data["tong_gia_tri"] > 0:
@@ -331,8 +335,8 @@ def render_phuluc_03():
 
 
 # ---------- Hiển thị form theo loại cơ sở ----------
-if loai_co_so == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện":
-    st.info("📋 Đơn vị y tế / Bệnh viện báo cáo: Phụ lục I, II")
+if loai_co_so == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ":
+    st.info("📋 Đơn vị y tế / Bệnh viện / CDC báo cáo: Phụ lục I, II")
     form_01_data = render_phuluc_01()
     st.markdown("---")
     form_02_data = render_phuluc_02()
@@ -389,6 +393,8 @@ if submit_button:
         errors.append("Vui lòng nhập địa chỉ")
     if loai_co_so == "-- Chọn loại cơ sở --":
         errors.append("Vui lòng chọn loại cơ sở")
+    if tinh_chat == "-- Chọn tính chất --":
+        errors.append("Vui lòng chọn tính chất cơ sở (công lập/tư nhân)")
     if not uploaded_file:
         errors.append("Vui lòng đính kèm file PDF báo cáo có chữ ký và đóng dấu")
 
@@ -404,11 +410,12 @@ if submit_button:
                     "dien_thoai": dien_thoai,
                     "email": email,
                     "loai_co_so": loai_co_so,
-                    "nguoi_dai_dien": nguoi_dai_dien
+                    "nguoi_dai_dien": nguoi_dai_dien,
+                    "tinh_chat": tinh_chat,
                 }
                 save_facility_info(facility_data)
 
-                if loai_co_so == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện":
+                if loai_co_so == "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ":
                     save_phuluc_01(ten_co_so, form_01_data)
                     save_phuluc_02(ten_co_so, form_02_data)
                 elif loai_co_so == "Trung tâm Kiểm nghiệm tỉnh Phú Thọ":
@@ -416,52 +423,38 @@ if submit_button:
 
                 if uploaded_file:
                     file_size_mb = uploaded_file.size / (1024 * 1024)
+                    pdf_bytes = uploaded_file.getvalue()
 
-                    # 1) Lưu PDF lên Google Drive trước để có link đối chiếu trong Dashboard.
-                    #    Nếu thiếu secrets Drive thì upload_link="" -> Dashboard vẫn có thể
-                    #    hiển thị qua Discord fallback (không crash).
-                    drive_link = ""
-                    drive_id = ""
+                    # 1) Lưu PDF local (Dropbox) — đối chiếu Dashboard
+                    local_path = ""
                     try:
-                        drive_link = upload_pdf_to_drive(
-                            uploaded_file.getvalue(),
-                            uploaded_file.name,
-                            ten_co_so
-                        )
-                        if drive_link and "file/d/" in drive_link:
-                            try:
-                                drive_id = drive_link.split("file/d/")[1].split("/")[0]
-                            except Exception:
-                                drive_id = ""
+                        local_path = save_pdf_local(pdf_bytes, uploaded_file.name, ten_co_so) or ""
+                        if local_path:
+                            st.info("📁 File PDF đã lưu (Dropbox) để admin đối chiếu.")
                     except Exception as e:
-                        st.warning(f"⚠️ Không lưu được PDF lên Drive: {e}")
+                        st.warning(f"⚠️ Không lưu được PDF local: {e}")
 
-                    # 2) Vẫn gửi Discord (log + backup file).
+                    # 2) Discord (thông báo + backup file)
+                    discord_result = None
                     if file_size_mb <= 10:
                         discord_result = upload_pdf_to_discord(
-                            uploaded_file.getvalue(),
+                            pdf_bytes,
                             uploaded_file.name,
                             ten_co_so,
                             loai_co_so
                         )
-                        if discord_result or drive_link:
-                            save_pdf_info(
-                                ten_co_so, uploaded_file.name, uploaded_file.size,
-                                drive_link=drive_link, drive_id=drive_id
-                            )
-                            if drive_link:
-                                st.info(f"📤 File PDF đã lưu lên Google Drive để admin đối chiếu.")
-                            if discord_result:
-                                st.info("📤 File PDF đã được gửi qua Discord!")
+                        if discord_result:
+                            st.info("📤 File PDF đã được gửi qua Discord!")
                     else:
-                        # File lớn không qua Discord được, nhưng vẫn có thể lưu Drive.
-                        if drive_link:
-                            save_pdf_info(
-                                ten_co_so, uploaded_file.name, uploaded_file.size,
-                                drive_link=drive_link, drive_id=drive_id
-                            )
-                            st.info("📤 File PDF đã lưu lên Google Drive.")
                         st.warning(f"⚠️ File quá lớn ({file_size_mb:.2f} MB), không gửi được qua Discord.")
+
+                    if local_path or discord_result:
+                        save_pdf_info(
+                            ten_co_so, uploaded_file.name, uploaded_file.size,
+                            local_path=local_path
+                        )
+                    else:
+                        st.warning("⚠️ Không lưu được PDF (local/Discord đều thất bại).")
 
                 st.success("✅ Đã gửi báo cáo thành công!")
                 st.balloons()
@@ -519,7 +512,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.metric(label="Tổng số cơ sở đã nộp", value=stats["total"], delta=None)
 with col2:
-    st.metric(label="Đơn vị y tế / Bệnh viện", value=stats["yte"], delta=None)
+    st.metric(label="Đơn vị y tế / BV / CDC", value=stats["yte"], delta=None)
 with col3:
     st.metric(label="Trung tâm Kiểm nghiệm", value=stats["kiem_nghiem"], delta=None)
 
@@ -532,7 +525,7 @@ with col1:
     st.subheader("📊 Phân bố theo loại cơ sở")
     if stats["total"] > 0:
         chart_data = {
-            "Loại cơ sở": ["Đơn vị y tế / Bệnh viện", "Trung tâm Kiểm nghiệm"],
+            "Loại cơ sở": ["Đơn vị y tế / BV / CDC", "Trung tâm Kiểm nghiệm"],
             "Số lượng": [stats["yte"], stats["kiem_nghiem"]]
         }
         fig = px.pie(
@@ -589,7 +582,7 @@ if not facilities_df.empty:
     with col2:
         filter_type = st.selectbox(
             "Lọc theo loại cơ sở",
-            ["Tất cả", "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"],
+            ["Tất cả", "Đơn vị y tế trực thuộc Sở Y tế / Bệnh viện/ Trung tâm Kiểm soát bệnh tật tỉnh Phú Thọ", "Trung tâm Kiểm nghiệm tỉnh Phú Thọ"],
             key="adm_filter"
         )
     with col3:
@@ -644,6 +637,8 @@ if not facilities_df.empty:
             st.markdown(f"""
             **Loại cơ sở:** {facility_info.get('Loại cơ sở', 'N/A')}
 
+            **Tính chất:** {facility_info.get('Tính chất', 'N/A')}
+
             **Người đại diện:** {facility_info.get('Người đại diện', 'N/A')}
 
             **Thời gian nộp:** {facility_info.get('Thời gian nộp', 'N/A')}
@@ -656,11 +651,11 @@ if not facilities_df.empty:
         st.header("🔍 Đối chiếu PDF scan với số liệu đã nhập")
         st.caption("So mắt: cột trái = số liệu nhập qua web, cột phải = bản scan PDF đính kèm.")
 
-        pdf_link, pdf_id = "", ""
+        pdf_local = ""
         try:
-            pdf_link, pdf_id = get_pdf_link(selected_facility)
+            pdf_local = get_pdf_local_path(selected_facility)
         except Exception:
-            pdf_link, pdf_id = "", ""
+            pdf_local = ""
 
         # Ratio [1, 1]: 2 cột cân. PDF cần cao để cuộn được => dùng height lớn.
         col_data, col_pdf = st.columns([1, 1], gap="large")
@@ -708,24 +703,28 @@ if not facilities_df.empty:
             if not has_any_data:
                 st.info("Chưa có số liệu Phụ lục cho cơ sở này.")
 
-        # ---- Cột phải: PDF viewer qua Google Drive preview iframe ----
+        # ---- Cột phải: PDF viewer từ file local (Dropbox) ----
         with col_pdf:
             st.markdown("#### 📄 Bản scan PDF đính kèm")
-            if pdf_link and pdf_id:
-                # Link mở full tab mới (trình duyệt PDF đầy đủ, tải/xem/in).
-                st.markdown(f"🔗 [Mở PDF đầy đủ trong tab mới]({pdf_link})")
-                # Drive preview iframe: trình duyệt tự render PDF, không cần lib server-side.
-                preview_url = f"https://drive.google.com/file/d/{pdf_id}/preview"
-                st.components.v1.html(
-                    f'<iframe src="{preview_url}" style="width:100%; height:780px; border:1px solid #e5e7eb; border-radius:0.5rem;" allow="autoplay"></iframe>',
-                    height=800
-                )
-            elif pdf_link:
-                # Có link nhưng không tách được id (link lạ) -> fallback mở tab.
-                st.markdown(f"🔗 [Mở PDF trong tab mới]({pdf_link})")
-                st.info("Link PDF không dùng được cho viewer nội tuyến — mở tab mới để xem.")
+            if pdf_local:
+                pdf_bytes = read_pdf_local(pdf_local)
+                if pdf_bytes:
+                    st.caption(f"📁 `{pdf_local}`")
+                    try:
+                        st.pdf(pdf_bytes, height=780)
+                    except Exception as e:
+                        st.warning(f"Không render st.pdf: {e}")
+                        st.download_button(
+                            "⬇️ Tải PDF để xem",
+                            data=pdf_bytes,
+                            file_name=f"{selected_facility}.pdf",
+                            mime="application/pdf",
+                            key=f"dl_pdf_{selected_facility}",
+                        )
+                else:
+                    st.warning(f"⚠️ Có path nhưng không đọc được file: `{pdf_local}`")
             else:
-                st.warning("⚠️ Chưa có PDF đính kèm cho cơ sở này (hoặc Google Drive chưa cấu hình).")
+                st.warning("⚠️ Chưa có PDF đính kèm cho cơ sở này.")
 
 # ---------- Xuất báo cáo ----------
 st.markdown("---")
