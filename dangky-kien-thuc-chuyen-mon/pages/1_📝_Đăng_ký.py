@@ -1,6 +1,5 @@
-"""Trang đăng ký cập nhật kiến thức chuyên môn dược."""
+"""Trang đăng ký cập nhật kiến thức chuyên môn dược (trang duy nhất của app)."""
 from datetime import date, datetime
-from pathlib import Path
 
 import streamlit as st
 
@@ -9,9 +8,8 @@ from utils.storage import COURSE_NAME, save_registration
 from utils.styles import apply_base_styles
 from utils.validators import validate_registration
 
-COURSE_TITLE = "Cập nhật kiến thức chuyên môn dược"
 COURSE_ORG = "Trường Cao đẳng Y tế Phú Thọ"
-BANNER_PATH = Path(__file__).resolve().parent.parent / "assets" / "banner-kien-thuc-chuyen-mon.png"
+COURSE_LOCATION = "Hội trường"
 
 st.set_page_config(
     page_title="Đăng ký cập nhật kiến thức chuyên môn dược",
@@ -21,12 +19,10 @@ st.set_page_config(
 
 apply_base_styles(18)
 
-if BANNER_PATH.exists():
-    st.image(str(BANNER_PATH), use_container_width=True)
-
-st.subheader("📝 Phiếu đăng ký cập nhật kiến thức chuyên môn dược")
-st.caption(f"Khóa học: {COURSE_TITLE} — Đơn vị tổ chức: {COURSE_ORG}")
-st.caption("Địa điểm: Hội trường Trường Cao đẳng Y tế Phú Thọ")
+# Header giới thiệu rút gọn: mở URL là thấy ngay form, không cần trang giới thiệu riêng.
+st.title("Đăng ký cập nhật kiến thức chuyên môn dược")
+st.caption(f"{COURSE_ORG} — {COURSE_LOCATION}")
+st.info("Vui lòng điền đầy đủ thông tin bên dưới. Thông tin dùng để lập danh sách học viên.")
 st.markdown("---")
 
 with st.form("registration_form", clear_on_submit=True):

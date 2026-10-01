@@ -1,6 +1,6 @@
 # Hệ thống đăng ký cập nhật kiến thức chuyên môn dược
 
-Ứng dụng Streamlit thu thập phiếu đăng ký học **Cập nhật kiến thức chuyên môn dược**, dựng theo cùng mẫu với app đăng ký hội thảo ung bướu trong repo này:
+Ứng dụng Streamlit **một trang** thu thập phiếu đăng ký học **Cập nhật kiến thức chuyên môn dược**, dựng theo cùng mẫu với app đăng ký hội thảo ung bướu trong repo này. Mở URL là thấy ngay **form đăng ký** — không còn trang giới thiệu riêng, không còn tab chuyển trang; thông tin khóa học chỉ là phần header rút gọn (`st.title` / `st.caption` / `st.info`) ở đầu form. `app.py` dùng `st.navigation` để trang đăng ký là trang mặc định ở đường dẫn `/`.
 
 - thu thập thông tin người đăng ký theo đúng 6 trường bắt buộc
 - kiểm tra hợp lệ dữ liệu ngay trên form (số CCCND/CCCD, ngày cấp, số điện thoại)
@@ -36,13 +36,11 @@ Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` tr�
 
 ```text
 dangky-kien-thuc-chuyen-mon/
-├── app.py                     # entry point Streamlit
-├── 0_🏠_Giới_thiệu.py          # trang giới thiệu khóa học
-├── logo.jpg                   # logo hiển thị ở trang giới thiệu
+├── app.py                     # entry point Streamlit (set_page_config + st.navigation)
 ├── assets/
 │   └── logo-hoi-y-duoc-phutho.svg
 ├── pages/
-│   └── 1_📝_Đăng_ký.py         # form đăng ký 6 trường + ghi chú
+│   └── 1_📝_Đăng_ký.py         # TRANG DUY NHẤT: header rút gọn + form đăng ký 6 trường + ghi chú
 ├── utils/
 │   ├── __init__.py
 │   ├── discord_webhook.py      # gửi thông báo Discord
@@ -109,5 +107,6 @@ Nếu chưa cấu hình webhook, app vẫn lưu dữ liệu bình thường và 
 
 ## Ghi chú giao diện
 
-- Banner là tùy chọn: `assets/banner-kien-thuc-chuyen-mon.png` chỉ được hiển thị khi file tồn tại.
+- App một trang: chỉ có 1 trang trong `pages/`, được `app.py` đăng ký qua `st.navigation` làm trang mặc định nên URL gốc `/` render thẳng form đăng ký.
+- Header giới thiệu rút gọn nằm ngay trên form (`st.title` + `st.caption` + `st.info`), không dùng tab/radio của Streamlit để chuyển trang.
 - Cỡ chữ giao diện đặt ở mức 18px cho dễ đọc (`apply_base_styles(18)`).
