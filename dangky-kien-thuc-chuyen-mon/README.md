@@ -21,7 +21,7 @@ Form chia **2 khối** (dùng `st.subheader` + `st.divider`), số CCHND + ngày
 |------|---|--------|----------|-----------------|
 | 1. Thông tin chứng chỉ hành nghề dược | 1 | Số Chứng chỉ hành nghề dược | ✅ | Chữ cái (kể cả có dấu tiếng Việt), chữ số, khoảng trắng và `- / . _`; dài 5–50 ký tự; phải chứa ít nhất 1 chữ số (ví dụ `12345/PTH-2024`) |
 | 1. Thông tin chứng chỉ hành nghề dược | 2 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
-| 1. Thông tin chứng chỉ hành nghề dược | 3 | Nơi cấp | ✅ | Không được để trống |
+| 1. Thông tin chứng chỉ hành nghề dược | 3 | Nơi cấp | ✅ | Không được để trống. Đây là cơ quan cấp **Chứng chỉ hành nghề dược** (Sở Y tế tỉnh/thành phố), **không phải** cơ quan cấp CCCD/cư trú. Gợi ý trong ô nhập: `Ví dụ: Sở Y tế tỉnh Vĩnh Phúc`; người dùng tự gõ tên Sở của tỉnh mình (ô nhập tự do, không phải selectbox) |
 | 2. Thông tin người đăng ký | 4 | Họ và tên | ✅ | Không được để trống |
 | 2. Thông tin người đăng ký | 5 | Số điện thoại | ✅ | Gồm 10 số, bắt đầu bằng số 0 (dạng `0XXXXXXXXX`) |
 | 2. Thông tin người đăng ký | 6 | Địa chỉ thường trú | ✅ | Không được để trống |
@@ -30,6 +30,7 @@ Form chia **2 khối** (dùng `st.subheader` + `st.divider`), số CCHND + ngày
 Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` trả về danh sách lỗi tiếng Việt). Chi tiết các quy tắc:
 
 - **Số Chứng chỉ hành nghề dược (CCHND):** mã phối hợp chữ + số + dấu ngăn cách, ví dụ `12345`, `12345/PTH-2024`, `V-PTH-00123`, `PT-CT-4567`. Cho phép chữ cái Unicode (kể cả tiếng Việt có dấu), chữ số, khoảng trắng và các ký tự `- / . _`; khoảng trắng thừa được gộp về 1 space; độ dài sau khi cắt khoảng trắng từ 5 đến 50 ký tự và bắt buộc có ít nhất 1 chữ số. Mọi ký tự khác (`!`, `@`, `#`, `<`, `>`, ngoặc...) đều bị từ chối.
+- **Nơi cấp:** bắt buộc, chỉ kiểm tra không được để trống; là cơ quan cấp CCHND (**Sở Y tế** tỉnh/thành phố), không phải công an/cơ quan cấp CCCD. Ô nhập để tự do kèm placeholder `Ví dụ: Sở Y tế tỉnh Vĩnh Phúc` — cố ý không dùng selectbox và không validate cứng theo danh sách tỉnh vì người đăng ký có thể thuộc tỉnh khác.
 - **Ngày cấp:** bắt buộc phải chọn, không được để trống và không được sau ngày hôm nay.
 - **Số điện thoại:** gồm đúng 10 số và bắt đầu bằng số 0 (dạng `0XXXXXXXXX`).
 

@@ -47,8 +47,11 @@ with st.form("registration_form", clear_on_submit=True):
             "Ngày cấp *", value=None, format="DD/MM/YYYY", max_value=date.today()
         )
 
+    # Nơi cấp là cơ quan cấp Chứng chỉ hành nghề dược (Sở Y tế tỉnh), không phải
+    # cơ quan cấp CCCD/cư trú. Vẫn để text_input để người dùng tự gõ tên Sở của
+    # tỉnh mình (không selectbox, không validate cứng danh sách tỉnh).
     noi_cap = st.text_input(
-        "Nơi cấp *", placeholder="Cục Cảnh sát quản lý hành chính về trật tự xã hội"
+        "Nơi cấp *", placeholder="Ví dụ: Sở Y tế tỉnh Vĩnh Phúc"
     )
 
     st.divider()
