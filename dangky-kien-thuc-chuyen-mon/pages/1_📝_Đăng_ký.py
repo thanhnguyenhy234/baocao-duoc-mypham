@@ -25,7 +25,9 @@ st.caption(f"{COURSE_ORG} — {COURSE_LOCATION}")
 st.info("Vui lòng điền đầy đủ thông tin bên dưới. Thông tin dùng để lập danh sách học viên.")
 st.markdown("---")
 
-with st.form("registration_form", clear_on_submit=True):
+# clear_on_submit=False: cố ý KHÔNG xoá form sau khi bấm Gửi, kể cả khi validate_registration()
+# báo lỗi — giữ nguyên 6 trường đã nhập để người dùng chỉ sửa ô sai thay vì gõ lại từ đầu.
+with st.form("registration_form", clear_on_submit=False):
     # Bố cục 2 khối: (1) giấy chứng chỉ hành nghề dược gồm số + ngày cấp + nơi cấp,
     # (2) thông tin người đăng ký. Khối 1 đặt trước để nhóm CCHND liền mạch,
     # không bị xen kẽ bởi các ô thông tin cá nhân.
@@ -101,6 +103,10 @@ if submitted:
                 st.info("🔔 Đã gửi thông báo về Discord.")
             else:
                 st.warning(f"⚠️ Chưa gửi được Discord: {discord_result['message']}")
+            st.info(
+                "📌 Form vẫn giữ nguyên dữ liệu vừa gửi để bạn kiểm tra — chỉ bấm GỬI ĐĂNG KÝ "
+                "lần nữa nếu muốn tạo thêm một bản ghi mới."
+            )
             st.balloons()
         else:
             st.error(f"❌ Không thể lưu đăng ký: {save_result['message']}")
