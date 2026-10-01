@@ -9,7 +9,7 @@ from datetime import date, datetime
 # Các trường bắt buộc: (key trong dict đăng ký, thông báo lỗi khi để trống)
 REQUIRED_FIELDS: list[tuple[str, str]] = [
     ("ho_ten", "Vui lòng nhập họ và tên."),
-    ("so_cccd", "Vui lòng nhập số CCCND/CCCD."),
+    ("so_chung_chi", "Vui lòng nhập số Chứng chỉ hành nghề dược."),
     ("ngay_cap", "Vui lòng chọn ngày cấp."),
     ("noi_cap", "Vui lòng nhập nơi cấp."),
     ("dia_chi_thuong_tru", "Vui lòng nhập địa chỉ thường trú."),
@@ -17,6 +17,11 @@ REQUIRED_FIELDS: list[tuple[str, str]] = [
 ]
 
 NGAY_CAP_FORMAT = "%d/%m/%Y"
+
+# Quy tắc số Chứng chỉ hành nghề dược (CCHND): mã phối hợp chữ + số + dấu ngăn cách.
+SO_CHUNG_CHI_MIN_LENGTH = 5
+SO_CHUNG_CHI_MAX_LENGTH = 50
+SO_CHUNG_CHI_SYMBOLS = frozenset("-/._")
 
 
 def _to_text(value) -> str:
@@ -44,15 +49,32 @@ def _parse_ngay_cap(value) -> date | None:
     return None
 
 
-def validate_so_cccd(value) -> list[str]:
-    """Số CCCND/CCCD: chỉ chữ số, gồm 9 số (CMND) hoặc 12 số (CCCD)."""
-    text = _to_text(value)
+def validate_so_chung_chi(value) -> list[str]:
+    """Số Chứng chỉ hành nghề dược (CCHND).
+
+    Số Chứng chỉ hành nghề dược là mã phối hợp chữ + số + dấu ngăn cách,
+    ví dụ ``12345``, ``12345/PTH-2024``, ``V-PTH-00123`` hay ``PT-CT-4567``.
+    Cho phép chữ cái Unicode (kể cả tiếng Việt có dấu), chữ số, khoảng trắng
+    và các ký tự ``- / . _``; phải dài từ 5 đến 50 ký tự và có ít nhất 1 chữ số.
+    """
+    text = " ".join(_to_text(value).split())
     if not text:
-        return ["Vui lòng nhập số CCCND/CCCD."]
-    if not (text.isascii() and text.isdigit()):
-        return ["Số CCCND/CCCD chỉ được chứa chữ số."]
-    if len(text) not in (9, 12):
-        return ["Số CCCND/CCCD phải gồm 9 số (CMND) hoặc 12 số (CCCD)."]
+        return ["Vui lòng nhập số Chứng chỉ hành nghề dược."]
+    if len(text) < SO_CHUNG_CHI_MIN_LENGTH or len(text) > SO_CHUNG_CHI_MAX_LENGTH:
+        return [
+            "Số Chứng chỉ hành nghề dược phải gồm từ "
+            f"{SO_CHUNG_CHI_MIN_LENGTH} đến {SO_CHUNG_CHI_MAX_LENGTH} ký tự."
+        ]
+    if any(
+        not (ch.isalpha() or ch.isdigit() or ch.isspace() or ch in SO_CHUNG_CHI_SYMBOLS)
+        for ch in text
+    ):
+        return [
+            "Số Chứng chỉ hành nghề dược chỉ được chứa chữ cái, chữ số, khoảng trắng "
+            "và các ký tự - / . _ (ví dụ: 12345/PTH-2024)."
+        ]
+    if not any(ch.isdigit() for ch in text):
+        return ["Số Chứng chỉ hành nghề dược phải chứa ít nhất một chữ số."]
     return []
 
 
@@ -91,7 +113,7 @@ def validate_registration(registration: dict, today: date | None = None) -> list
         if _to_text(registration.get(key)) == "":
             errors.append(message)
 
-    errors.extend(validate_so_cccd(registration.get("so_cccd")))
+    errors.extend(validate_so_chung_chi(registration.get("so_chung_chi")))
     errors.extend(validate_so_dien_thoai(registration.get("so_dien_thoai")))
     if _to_text(registration.get("ngay_cap")) != "":
         errors.extend(validate_ngay_cap(registration.get("ngay_cap"), today))

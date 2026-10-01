@@ -3,7 +3,7 @@
 Ứng dụng Streamlit **một trang** thu thập phiếu đăng ký học **Cập nhật kiến thức chuyên môn dược**, dựng theo cùng mẫu với app đăng ký hội thảo ung bướu trong repo này. Mở URL là thấy ngay **form đăng ký** — không còn trang giới thiệu riêng, không còn tab chuyển trang; thông tin khóa học chỉ là phần header rút gọn (`st.title` / `st.caption` / `st.info`) ở đầu form. `app.py` dùng `st.navigation` để trang đăng ký là trang mặc định ở đường dẫn `/`.
 
 - thu thập thông tin người đăng ký theo đúng 6 trường bắt buộc
-- kiểm tra hợp lệ dữ liệu ngay trên form (số CCCND/CCCD, ngày cấp, số điện thoại)
+- kiểm tra hợp lệ dữ liệu ngay trên form (số Chứng chỉ hành nghề dược, ngày cấp, số điện thoại)
 - lưu danh sách đăng ký (Google Sheets, tự động chuyển sang CSV cục bộ nếu chưa cấu hình)
 - gửi thông báo về Discord bằng webhook
 
@@ -18,7 +18,7 @@
 | # | Trường | Bắt buộc | Kiểm tra hợp lệ |
 |---|--------|----------|-----------------|
 | 1 | Họ và tên | ✅ | Không được để trống |
-| 2 | Số CCCND/CCCD | ✅ | Chỉ chữ số, gồm 9 số (CMND) hoặc 12 số (CCCD) |
+| 2 | Số Chứng chỉ hành nghề dược | ✅ | Chữ cái (kể cả có dấu tiếng Việt), chữ số, khoảng trắng và `- / . _`; dài 5–50 ký tự; phải chứa ít nhất 1 chữ số (ví dụ `12345/PTH-2024`) |
 | 3 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
 | 4 | Nơi cấp | ✅ | Không được để trống |
 | 5 | Địa chỉ thường trú | ✅ | Không được để trống |
@@ -28,7 +28,7 @@
 
 Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` trả về danh sách lỗi tiếng Việt). Chi tiết các quy tắc:
 
-- **Số CCCND/CCCD:** chỉ chứa chữ số, gồm 9 số (CMND) hoặc 12 số (CCCD).
+- **Số Chứng chỉ hành nghề dược (CCHND):** mã phối hợp chữ + số + dấu ngăn cách, ví dụ `12345`, `12345/PTH-2024`, `V-PTH-00123`, `PT-CT-4567`. Cho phép chữ cái Unicode (kể cả tiếng Việt có dấu), chữ số, khoảng trắng và các ký tự `- / . _`; khoảng trắng thừa được gộp về 1 space; độ dài sau khi cắt khoảng trắng từ 5 đến 50 ký tự và bắt buộc có ít nhất 1 chữ số. Mọi ký tự khác (`!`, `@`, `#`, `<`, `>`, ngoặc...) đều bị từ chối.
 - **Ngày cấp:** bắt buộc phải chọn, không được để trống và không được sau ngày hôm nay.
 - **Số điện thoại:** gồm đúng 10 số và bắt đầu bằng số 0 (dạng `0XXXXXXXXX`).
 
@@ -83,11 +83,11 @@ streamlit run app.py
 - **Ưu tiên 1:** Google Sheets — khi secrets có đủ `spreadsheet_id` và `gcp_service_account`; dữ liệu ghi vào worksheet tên `Đăng ký cập nhật KKT chuyên môn dược`.
 - **Ưu tiên 2 (fallback):** CSV cục bộ tại `data/registrations.csv`.
 
-Số điện thoại và số CCCND/CCCD được lưu dưới dạng chuỗi và CSV được đọc/ghi với `dtype=str` (`keep_default_na=False`) để giữ nguyên chữ số, không bị mất số 0 đầu (ví dụ `0912345678`).
+Số điện thoại và số Chứng chỉ hành nghề dược được lưu dưới dạng chuỗi và CSV được đọc/ghi với `dtype=str` (`keep_default_na=False`) để giữ nguyên chữ số, không bị mất số 0 đầu (ví dụ `0912345678`).
 
 Thứ tự cột trong cả hai chế độ:
 
-`Thời gian đăng ký`, `Họ và tên`, `Số CCCND`, `Ngày cấp`, `Nơi cấp`, `Địa chỉ thường trú`, `Số điện thoại`, `Ghi chú`, `Khóa học`
+`Thời gian đăng ký`, `Họ và tên`, `Số Chứng chỉ hành nghề dược`, `Ngày cấp`, `Nơi cấp`, `Địa chỉ thường trú`, `Số điện thoại`, `Ghi chú`, `Khóa học`
 
 Ngày cấp được lưu ở định dạng `dd/mm/yyyy`.
 
@@ -96,7 +96,7 @@ Ngày cấp được lưu ở định dạng `dd/mm/yyyy`.
 Mỗi lượt đăng ký mới gửi một tin nhắn (username webhook: `Đăng ký KKT chuyên môn dược`) gồm:
 
 - họ và tên
-- số CCCND/CCCD
+- số Chứng chỉ hành nghề dược
 - ngày cấp, nơi cấp
 - địa chỉ thường trú
 - số điện thoại

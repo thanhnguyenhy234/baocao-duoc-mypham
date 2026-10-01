@@ -31,7 +31,10 @@ with st.form("registration_form", clear_on_submit=True):
 
     with col1:
         ho_ten = st.text_input("Họ và tên *", placeholder="Nguyễn Văn A")
-        so_cccd = st.text_input("Số CCCND/CCCD *", placeholder="9 số (CMND) hoặc 12 số (CCCD)")
+        so_chung_chi = st.text_input(
+            "Số Chứng chỉ hành nghề dược *",
+            placeholder="Ví dụ: 12345/PTH-2024 hoặc 12345",
+        )
         # Mặc định để rỗng (value=None) để buộc người dùng tự chọn;
         # max_value=date.today() chặn chọn ngày tương lai ngay ở tầng UI.
         ngay_cap = st.date_input(
@@ -57,7 +60,7 @@ if submitted:
     registration = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "ho_ten": ho_ten.strip(),
-        "so_cccd": so_cccd.strip(),
+        "so_chung_chi": so_chung_chi.strip(),
         "ngay_cap": ngay_cap,
         "noi_cap": noi_cap.strip(),
         "dia_chi_thuong_tru": dia_chi_thuong_tru.strip(),

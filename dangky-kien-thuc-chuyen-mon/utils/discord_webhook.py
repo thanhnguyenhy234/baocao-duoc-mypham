@@ -22,7 +22,7 @@ def send_registration_notification(registration: dict) -> dict:
     content = f"""🩺 **ĐĂNG KÝ CẬP NHẬT KIẾN THỨC CHUYÊN MÔN DƯỢC**
 
 👤 **Họ và tên:** {registration.get("ho_ten", "")}
-🆔 **Số CCCND/CCCD:** {registration.get("so_cccd", "")}
+🎫 **Số CCHND:** {registration.get("so_chung_chi", "")}
 📅 **Ngày cấp:** {format_ngay_cap(registration.get("ngay_cap", "")) or "—"}
 🏛️ **Nơi cấp:** {registration.get("noi_cap", "") or "—"}
 🏠 **Địa chỉ thường trú:** {registration.get("dia_chi_thuong_tru", "") or "—"}

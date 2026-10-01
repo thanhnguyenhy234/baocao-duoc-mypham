@@ -20,7 +20,7 @@ COURSE_NAME = "Cập nhật kiến thức chuyên môn dược"
 HEADERS = [
     "Thời gian đăng ký",
     "Họ và tên",
-    "Số CCCND",
+    "Số Chứng chỉ hành nghề dược",
     "Ngày cấp",
     "Nơi cấp",
     "Địa chỉ thường trú",
@@ -47,7 +47,7 @@ def _row_from_registration(registration: dict) -> list[str]:
     return [
         registration.get("timestamp", ""),
         registration.get("ho_ten", ""),
-        registration.get("so_cccd", ""),
+        registration.get("so_chung_chi", ""),
         format_ngay_cap(registration.get("ngay_cap", "")),
         registration.get("noi_cap", ""),
         registration.get("dia_chi_thuong_tru", ""),
@@ -95,7 +95,7 @@ def _save_to_csv(registration: dict) -> dict:
     row_df = pd.DataFrame([dict(zip(HEADERS, values))])
 
     if CSV_PATH.exists():
-        # Đọc dạng chuỗi để không mất số 0 đầu của số điện thoại/số CCCND khi ghi nối tiếp
+        # Đọc dạng chuỗi để không mất số 0 đầu của số điện thoại/số CCHND khi ghi nối tiếp
         current_df = pd.read_csv(CSV_PATH, dtype=str, keep_default_na=False)
         row_df = pd.concat([current_df, row_df], ignore_index=True)
 
