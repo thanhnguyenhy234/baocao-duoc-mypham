@@ -43,9 +43,13 @@ with st.form("registration_form", clear_on_submit=False):
         )
 
     with col2:
-        # Ngày cấp KHÔNG bắt buộc: người đăng ký được để trống, và không kiểm soát
-        # ngày tương lai (không dùng max_value) nên không có ràng buộc nào ở tầng UI.
-        ngay_cap = st.date_input("Ngày cấp", value=None, format="DD/MM/YYYY")
+        # Ngày cấp: ô nhập tự do, KHÔNG bắt buộc và KHÔNG kiểm tra định dạng.
+        # Bỏ calendar vì người đăng ký thường tra cứu nhanh từ chứng chỉ đã in,
+        # gõ "22/02/2024" nhanh hơn việc bấm lịch.
+        ngay_cap = st.text_input(
+            "Ngày cấp",
+            placeholder="Ví dụ: 22/02/2024 (không bắt buộc)",
+        )
 
     # Nơi cấp là cơ quan cấp Chứng chỉ hành nghề dược (Sở Y tế tỉnh), không phải
     # cơ quan cấp CCCD/cư trú. Vẫn để text_input để người dùng tự gõ tên Sở của
@@ -78,7 +82,7 @@ if submitted:
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "ho_ten": ho_ten.strip(),
         "so_chung_chi": so_chung_chi.strip(),
-        "ngay_cap": ngay_cap,
+        "ngay_cap": (ngay_cap or "").strip(),
         "noi_cap": noi_cap.strip(),
         "dia_chi_thuong_tru": dia_chi_thuong_tru.strip(),
         "so_dien_thoai": so_dien_thoai.strip(),
