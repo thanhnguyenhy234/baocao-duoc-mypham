@@ -36,6 +36,17 @@ def apply_base_styles(font_size_px: int = 18) -> None:
         padding-top: 0.6rem !important;
         padding-bottom: 0.6rem !important;
     }}
+    /* Form chia khối: tiêu đề khối nổi bật + đường phân cách rõ ranh giới */
+    [data-testid="stForm"] h3 {{
+        margin-top: 0.25rem !important;
+        margin-bottom: 0.25rem !important;
+    }}
+    [data-testid="stForm"] hr {{
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+        border: none !important;
+        border-top: 1px solid rgba(0, 128, 128, 0.35) !important;
+    }}
 </style>
 """,
         unsafe_allow_html=True,

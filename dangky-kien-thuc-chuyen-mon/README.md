@@ -2,7 +2,7 @@
 
 Ứng dụng Streamlit **một trang** thu thập phiếu đăng ký học **Cập nhật kiến thức chuyên môn dược**, dựng theo cùng mẫu với app đăng ký hội thảo ung bướu trong repo này. Mở URL là thấy ngay **form đăng ký** — không còn trang giới thiệu riêng, không còn tab chuyển trang; thông tin khóa học chỉ là phần header rút gọn (`st.title` / `st.caption` / `st.info`) ở đầu form. `app.py` dùng `st.navigation` để trang đăng ký là trang mặc định ở đường dẫn `/`.
 
-- thu thập thông tin người đăng ký theo đúng 6 trường bắt buộc
+- thu thập thông tin người đăng ký theo đúng 6 trường bắt buộc, form chia 3 khối rõ ràng
 - kiểm tra hợp lệ dữ liệu ngay trên form (số Chứng chỉ hành nghề dược, ngày cấp, số điện thoại)
 - lưu danh sách đăng ký (Google Sheets, tự động chuyển sang CSV cục bộ nếu chưa cấu hình)
 - gửi thông báo về Discord bằng webhook
@@ -13,18 +13,20 @@
 - **Đơn vị tổ chức:** Trường Cao đẳng Y tế Phú Thọ
 - **Địa điểm:** Hội trường Trường Cao đẳng Y tế Phú Thọ
 
-## Các trường thu thập (đúng thứ tự)
+## Các trường thu thập (đúng thứ tự và theo khối trên form)
 
-| # | Trường | Bắt buộc | Kiểm tra hợp lệ |
-|---|--------|----------|-----------------|
-| 1 | Họ và tên | ✅ | Không được để trống |
-| 2 | Số Chứng chỉ hành nghề dược | ✅ | Chữ cái (kể cả có dấu tiếng Việt), chữ số, khoảng trắng và `- / . _`; dài 5–50 ký tự; phải chứa ít nhất 1 chữ số (ví dụ `12345/PTH-2024`) |
-| 3 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
-| 4 | Nơi cấp | ✅ | Không được để trống |
-| 5 | Địa chỉ thường trú | ✅ | Không được để trống |
-| 6 | Số điện thoại | ✅ | Gồm 10 số, bắt đầu bằng số 0 (dạng `0XXXXXXXXX`) |
-| — | Ghi chú / nhu cầu khác | ❌ (tùy chọn) | Văn bản tự do |
-| — | Thời gian đăng ký | Trường hệ thống | Sinh tự động khi gửi phiếu |
+Form chia **3 khối** (dùng `st.subheader` + `st.divider`), số CCHND + ngày cấp + nơi cấp được gom chung một khối vì thuộc cùng một giấy chứng chỉ:
+
+| Khối | # | Trường | Bắt buộc | Kiểm tra hợp lệ |
+|------|---|--------|----------|-----------------|
+| 1. Thông tin chứng chỉ hành nghề dược | 1 | Số Chứng chỉ hành nghề dược | ✅ | Chữ cái (kể cả có dấu tiếng Việt), chữ số, khoảng trắng và `- / . _`; dài 5–50 ký tự; phải chứa ít nhất 1 chữ số (ví dụ `12345/PTH-2024`) |
+| 1. Thông tin chứng chỉ hành nghề dược | 2 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
+| 1. Thông tin chứng chỉ hành nghề dược | 3 | Nơi cấp | ✅ | Không được để trống |
+| 2. Thông tin người đăng ký | 4 | Họ và tên | ✅ | Không được để trống |
+| 2. Thông tin người đăng ký | 5 | Số điện thoại | ✅ | Gồm 10 số, bắt đầu bằng số 0 (dạng `0XXXXXXXXX`) |
+| 2. Thông tin người đăng ký | 6 | Địa chỉ thường trú | ✅ | Không được để trống |
+| 3. Ghi chú | — | Ghi chú / nhu cầu khác | ❌ (tùy chọn) | Văn bản tự do |
+| — | — | Thời gian đăng ký | Trường hệ thống | Sinh tự động khi gửi phiếu |
 
 Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` trả về danh sách lỗi tiếng Việt). Chi tiết các quy tắc:
 
@@ -40,7 +42,7 @@ dangky-kien-thuc-chuyen-mon/
 ├── assets/
 │   └── logo-hoi-y-duoc-phutho.svg
 ├── pages/
-│   └── 1_📝_Đăng_ký.py         # TRANG DUY NHẤT: header rút gọn + form đăng ký 6 trường + ghi chú
+│   └── 1_📝_Đăng_ký.py         # TRANG DUY NHẤT: header rút gọn + form 3 khối (chứng chỉ HND / người đăng ký / ghi chú)
 ├── utils/
 │   ├── __init__.py
 │   ├── discord_webhook.py      # gửi thông báo Discord
@@ -109,4 +111,5 @@ Nếu chưa cấu hình webhook, app vẫn lưu dữ liệu bình thường và 
 
 - App một trang: chỉ có 1 trang trong `pages/`, được `app.py` đăng ký qua `st.navigation` làm trang mặc định nên URL gốc `/` render thẳng form đăng ký.
 - Header giới thiệu rút gọn nằm ngay trên form (`st.title` + `st.caption` + `st.info`), không dùng tab/radio của Streamlit để chuyển trang.
+- Form chia **3 khối** theo thứ tự: **Thông tin chứng chỉ hành nghề dược** (số CCHND + ngày cấp + nơi cấp — cùng một giấy nên gom chung) → **Thông tin người đăng ký** (họ tên + số điện thoại + địa chỉ thường trú) → **Ghi chú** (tuỳ chọn). Tiêu đề khối dùng `st.subheader`, giữa các khối là `st.divider()`; CSS trong `utils/styles.py` thêm style cho tiêu đề khối và đường phân cách (không đổi widget nào).
 - Cỡ chữ giao diện đặt ở mức 18px cho dễ đọc (`apply_base_styles(18)`).
