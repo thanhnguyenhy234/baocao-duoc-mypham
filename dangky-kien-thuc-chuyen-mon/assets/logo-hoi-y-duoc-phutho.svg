@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Logo Hội Y Dược tỉnh Phú Thọ">
+  <defs>
+    <linearGradient id="blueRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3559ff"/>
+      <stop offset="100%" stop-color="#0b29bf"/>
+    </linearGradient>
+    <linearGradient id="goldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f9e897"/>
+      <stop offset="55%" stop-color="#f0c321"/>
+      <stop offset="100%" stop-color="#cb9911"/>
+    </linearGradient>
+    <path id="textTop" d="M 165 400 A 235 235 0 0 1 635 400"/>
+    <path id="textBottom" d="M 635 400 A 235 235 0 0 1 165 400"/>
+  </defs>
+
+  <circle cx="400" cy="400" r="320" fill="url(#blueRing)"/>
+  <circle cx="400" cy="400" r="258" fill="#ffffff"/>
+  <circle cx="400" cy="400" r="242" fill="url(#blueRing)"/>
+  <circle cx="400" cy="400" r="212" fill="#ffffff"/>
+
+  <circle cx="400" cy="400" r="178" fill="none" stroke="url(#goldRing)" stroke-width="16"/>
+  <circle cx="400" cy="400" r="165" fill="none" stroke="#f0cc42" stroke-width="3" stroke-dasharray="3 6" opacity="0.95"/>
+  <circle cx="400" cy="400" r="146" fill="none" stroke="#f3d35d" stroke-width="3" stroke-dasharray="1 9" opacity="0.9"/>
+  <circle cx="400" cy="400" r="128" fill="none" stroke="#f3d35d" stroke-width="3" stroke-dasharray="1 9" opacity="0.9"/>
+  <circle cx="400" cy="400" r="108" fill="#ffffff"/>
+
+  <g fill="#ffffff" font-family="Georgia, 'Times New Roman', serif" font-weight="700">
+    <text font-size="34" letter-spacing="1">
+      <textPath href="#textTop" startOffset="50%" text-anchor="middle">HOI Y DUOC TINH PHU THO</textPath>
+    </text>
+    <text font-size="30" letter-spacing="0.4">
+      <textPath href="#textBottom" startOffset="50%" text-anchor="middle">Phu Tho Medical and Pharmacy Association</textPath>
+    </text>
+  </g>
+
+  <g fill="#ffffff">
+    <circle cx="133" cy="400" r="8"/>
+    <circle cx="152" cy="378" r="8"/>
+    <circle cx="152" cy="422" r="8"/>
+    <circle cx="667" cy="400" r="8"/>
+    <circle cx="648" cy="378" r="8"/>
+    <circle cx="648" cy="422" r="8"/>
+  </g>
+
+  <circle cx="400" cy="155" r="13" fill="#a11616"/>
+</svg>
