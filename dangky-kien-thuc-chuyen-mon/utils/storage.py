@@ -17,13 +17,21 @@ except Exception:  # pragma: no cover
 CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "registrations.csv"
 SHEET_NAME = "Đăng ký cập nhật KKT chuyên môn dược"
 COURSE_NAME = "Cập nhật kiến thức chuyên môn dược"
+# Thứ tự cột CSV/Google Sheets. 8 cột cũ giữ nguyên tên và vị trí tương đối,
+# 6 cột mới (theo phiếu đăng ký gốc) được xen kẽ vào nhóm thông tin liên quan.
 HEADERS = [
     "Thời gian đăng ký",
     "Họ và tên",
+    "Ngày, tháng, năm sinh",
+    "Chỗ ở hiện nay",
     "Số Chứng chỉ hành nghề dược",
     "Ngày cấp",
     "Nơi cấp",
+    "Lĩnh vực hành nghề dược",
+    "Văn bằng chuyên môn",
+    "Nơi công tác",
     "Địa chỉ thường trú",
+    "Email",
     "Số điện thoại",
     "Khóa học",
 ]
@@ -43,13 +51,20 @@ def format_ngay_cap(value) -> str:
 
 
 def _row_from_registration(registration: dict) -> list[str]:
+    # Thứ tự phần tử PHẢI khớp đúng HEADERS (được assert trong test).
     return [
         registration.get("timestamp", ""),
         registration.get("ho_ten", ""),
+        registration.get("ngay_sinh", ""),
+        registration.get("cho_o_hien_nay", ""),
         registration.get("so_chung_chi", ""),
         format_ngay_cap(registration.get("ngay_cap", "")),
         registration.get("noi_cap", ""),
+        registration.get("linh_vuc_nghe_duoc", ""),
+        registration.get("van_bang_chuyen_mon", ""),
+        registration.get("noi_cong_tac", ""),
         registration.get("dia_chi_thuong_tru", ""),
+        registration.get("email", ""),
         registration.get("so_dien_thoai", ""),
         registration.get("khoa_hoc", COURSE_NAME),
     ]

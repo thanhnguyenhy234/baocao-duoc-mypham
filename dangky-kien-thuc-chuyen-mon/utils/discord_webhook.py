@@ -22,10 +22,16 @@ def send_registration_notification(registration: dict) -> dict:
     content = f"""🩺 **ĐĂNG KÝ CẬP NHẬT KIẾN THỨC CHUYÊN MÔN DƯỢC**
 
 👤 **Họ và tên:** {registration.get("ho_ten", "")}
+🎂 **Ngày sinh:** {registration.get("ngay_sinh", "") or "—"}
 🎫 **Số CCHND:** {registration.get("so_chung_chi", "")}
 📅 **Ngày cấp:** {format_ngay_cap(registration.get("ngay_cap", "")) or "—"}
 🏛️ **Nơi cấp:** {registration.get("noi_cap", "") or "—"}
+💼 **Lĩnh vực hành nghề dược:** {registration.get("linh_vuc_nghe_duoc", "") or "—"}
+🎓 **Văn bằng chuyên môn:** {registration.get("van_bang_chuyen_mon", "") or "—"}
+🏢 **Nơi công tác:** {registration.get("noi_cong_tac", "") or "—"}
+🏠 **Chỗ ở hiện nay:** {registration.get("cho_o_hien_nay", "") or "—"}
 🏠 **Địa chỉ thường trú:** {registration.get("dia_chi_thuong_tru", "") or "—"}
+📧 **Email:** {registration.get("email", "") or "—"}
 📞 **Số điện thoại:** {registration.get("so_dien_thoai", "")}
 🎓 **Khóa học:** {registration.get("khoa_hoc", "")}
 ⏰ **Thời gian đăng ký:** {registration.get("timestamp", "")}

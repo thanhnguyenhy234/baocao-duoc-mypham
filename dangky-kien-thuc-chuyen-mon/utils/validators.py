@@ -48,11 +48,33 @@ def validate_so_dien_thoai(value) -> list[str]:
     return []
 
 
+def validate_email(value) -> list[str]:
+    """Email: KHÔNG bắt buộc, chỉ kiểm tra nhẹ.
+
+    Để trống (hoặc chỉ khoảng trắng) => hợp lệ. Nếu có nhập thì chuỗi phải chứa
+    ký tự ``@`` và có dấu ``.`` ở phần sau ``@`` (ví dụ ``nguoiban@example.com``).
+    Cố ý không kiểm tra địa chỉ email có tồn tại thật hay không để tránh chặn oan.
+    """
+    text = _to_text(value)
+    if not text:
+        return []
+    if "@" in text and "." in text.split("@", 1)[1]:
+        return []
+    return [
+        "Email không hợp lệ. Vui lòng nhập đúng dạng có ký tự @ và dấu chấm sau @ "
+        "(ví dụ: nguoiban@example.com)."
+    ]
+
+
 def validate_registration(registration: dict) -> list[str]:
     """Kiểm tra toàn bộ phiếu đăng ký, trả về danh sách lỗi (rỗng là hợp lệ).
 
     Ngày cấp (``ngay_cap``) là trường KHÔNG bắt buộc và không bị kiểm soát
     (không chặn ngày tương lai, không bắt buộc chọn) — người đăng ký được để trống.
+
+    6 trường mới theo phiếu đăng ký gốc (``ngay_sinh``, ``cho_o_hien_nay``, ``email``,
+    ``van_bang_chuyen_mon``, ``linh_vuc_nghe_duoc``, ``noi_cong_tac``) đều KHÔNG bắt buộc
+    và KHÔNG kiểm tra định dạng — riêng ``email`` chỉ kiểm tra nhẹ khi có nhập.
     """
     if not isinstance(registration, dict):
         return ["Dữ liệu đăng ký không hợp lệ."]
@@ -64,6 +86,11 @@ def validate_registration(registration: dict) -> list[str]:
 
     errors.extend(validate_so_chung_chi(registration.get("so_chung_chi")))
     errors.extend(validate_so_dien_thoai(registration.get("so_dien_thoai")))
+
+    # Email không bắt buộc: chỉ kiểm tra khi người dùng có nhập,
+    # để không sinh thêm thông báo trùng với nhóm trường bắt buộc.
+    if _to_text(registration.get("email")) != "":
+        errors.extend(validate_email(registration.get("email")))
 
     # Loại bỏ thông báo trùng nhau nhưng giữ nguyên thứ tự xuất hiện
     unique_errors: list[str] = []
