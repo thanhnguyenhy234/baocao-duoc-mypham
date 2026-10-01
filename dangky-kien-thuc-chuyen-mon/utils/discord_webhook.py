@@ -27,7 +27,6 @@ def send_registration_notification(registration: dict) -> dict:
 🏛️ **Nơi cấp:** {registration.get("noi_cap", "") or "—"}
 🏠 **Địa chỉ thường trú:** {registration.get("dia_chi_thuong_tru", "") or "—"}
 📞 **Số điện thoại:** {registration.get("so_dien_thoai", "")}
-📝 **Ghi chú:** {registration.get("ghi_chu", "") or "—"}
 🎓 **Khóa học:** {registration.get("khoa_hoc", "")}
 ⏰ **Thời gian đăng ký:** {registration.get("timestamp", "")}
 """

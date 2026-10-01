@@ -26,9 +26,9 @@ st.info("Vui lòng điền đầy đủ thông tin bên dưới. Thông tin dùn
 st.markdown("---")
 
 with st.form("registration_form", clear_on_submit=True):
-    # Bố cục 3 khối: (1) giấy chứng chỉ hành nghề dược gồm số + ngày cấp + nơi cấp,
-    # (2) thông tin người đăng ký, (3) ghi chú. Khối 1 đặt trước để nhóm CCHND
-    # liền mạch, không bị xen kẽ bởi các ô thông tin cá nhân.
+    # Bố cục 2 khối: (1) giấy chứng chỉ hành nghề dược gồm số + ngày cấp + nơi cấp,
+    # (2) thông tin người đăng ký. Khối 1 đặt trước để nhóm CCHND liền mạch,
+    # không bị xen kẽ bởi các ô thông tin cá nhân.
 
     # --- Khối 1: Thông tin chứng chỉ hành nghề dược ---
     st.subheader("Thông tin chứng chỉ hành nghề dược")
@@ -68,15 +68,6 @@ with st.form("registration_form", clear_on_submit=True):
         placeholder="Xã/phường, huyện/quận, tỉnh/thành phố",
     )
 
-    st.divider()
-
-    # --- Khối 3: Ghi chú (tuỳ chọn) ---
-    st.subheader("Ghi chú")
-    ghi_chu = st.text_area(
-        "Ghi chú / nhu cầu khác",
-        placeholder="Ví dụ: cần hỗ trợ tài liệu, có câu hỏi chuyên môn muốn gửi trước...",
-    )
-
     submitted = st.form_submit_button("✅ GỬI ĐĂNG KÝ", type="primary", use_container_width=True)
 
 if submitted:
@@ -88,7 +79,6 @@ if submitted:
         "noi_cap": noi_cap.strip(),
         "dia_chi_thuong_tru": dia_chi_thuong_tru.strip(),
         "so_dien_thoai": so_dien_thoai.strip(),
-        "ghi_chu": ghi_chu.strip(),
         "khoa_hoc": COURSE_NAME,
     }
 

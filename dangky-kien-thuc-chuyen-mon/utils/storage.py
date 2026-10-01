@@ -25,7 +25,6 @@ HEADERS = [
     "Nơi cấp",
     "Địa chỉ thường trú",
     "Số điện thoại",
-    "Ghi chú",
     "Khóa học",
 ]
 SCOPES = [
@@ -52,7 +51,6 @@ def _row_from_registration(registration: dict) -> list[str]:
         registration.get("noi_cap", ""),
         registration.get("dia_chi_thuong_tru", ""),
         registration.get("so_dien_thoai", ""),
-        registration.get("ghi_chu", ""),
         registration.get("khoa_hoc", COURSE_NAME),
     ]
 
