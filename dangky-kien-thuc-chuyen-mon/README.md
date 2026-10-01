@@ -19,14 +19,18 @@
 |---|--------|----------|-----------------|
 | 1 | Họ và tên | ✅ | Không được để trống |
 | 2 | Số CCCND/CCCD | ✅ | Chỉ chữ số, gồm 9 số (CMND) hoặc 12 số (CCCD) |
-| 3 | Ngày cấp | ✅ | `st.date_input`, không được sau ngày hôm nay |
+| 3 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
 | 4 | Nơi cấp | ✅ | Không được để trống |
 | 5 | Địa chỉ thường trú | ✅ | Không được để trống |
 | 6 | Số điện thoại | ✅ | Gồm 10 số, bắt đầu bằng số 0 (dạng `0XXXXXXXXX`) |
 | — | Ghi chú / nhu cầu khác | ❌ (tùy chọn) | Văn bản tự do |
 | — | Thời gian đăng ký | Trường hệ thống | Sinh tự động khi gửi phiếu |
 
-Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` trả về danh sách lỗi tiếng Việt).
+Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` trả về danh sách lỗi tiếng Việt). Chi tiết các quy tắc:
+
+- **Số CCCND/CCCD:** chỉ chứa chữ số, gồm 9 số (CMND) hoặc 12 số (CCCD).
+- **Ngày cấp:** bắt buộc phải chọn, không được để trống và không được sau ngày hôm nay.
+- **Số điện thoại:** gồm đúng 10 số và bắt đầu bằng số 0 (dạng `0XXXXXXXXX`).
 
 ## Cấu trúc thư mục
 
@@ -80,6 +84,8 @@ streamlit run app.py
 
 - **Ưu tiên 1:** Google Sheets — khi secrets có đủ `spreadsheet_id` và `gcp_service_account`; dữ liệu ghi vào worksheet tên `Đăng ký cập nhật KKT chuyên môn dược`.
 - **Ưu tiên 2 (fallback):** CSV cục bộ tại `data/registrations.csv`.
+
+Số điện thoại và số CCCND/CCCD được lưu dưới dạng chuỗi và CSV được đọc/ghi với `dtype=str` (`keep_default_na=False`) để giữ nguyên chữ số, không bị mất số 0 đầu (ví dụ `0912345678`).
 
 Thứ tự cột trong cả hai chế độ:
 

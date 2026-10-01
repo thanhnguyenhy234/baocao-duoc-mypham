@@ -36,7 +36,11 @@ with st.form("registration_form", clear_on_submit=True):
     with col1:
         ho_ten = st.text_input("Họ và tên *", placeholder="Nguyễn Văn A")
         so_cccd = st.text_input("Số CCCND/CCCD *", placeholder="9 số (CMND) hoặc 12 số (CCCD)")
-        ngay_cap = st.date_input("Ngày cấp *", value=date.today(), format="DD/MM/YYYY")
+        # Mặc định để rỗng (value=None) để buộc người dùng tự chọn;
+        # max_value=date.today() chặn chọn ngày tương lai ngay ở tầng UI.
+        ngay_cap = st.date_input(
+            "Ngày cấp *", value=None, format="DD/MM/YYYY", max_value=date.today()
+        )
 
     with col2:
         noi_cap = st.text_input("Nơi cấp *", placeholder="Cục Cảnh sát quản lý hành chính về trật tự xã hội")
