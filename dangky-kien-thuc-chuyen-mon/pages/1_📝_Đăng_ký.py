@@ -1,5 +1,5 @@
 """Trang đăng ký cập nhật kiến thức chuyên môn dược (trang duy nhất của app)."""
-from datetime import date, datetime
+from datetime import datetime
 
 import streamlit as st
 
@@ -43,11 +43,9 @@ with st.form("registration_form", clear_on_submit=False):
         )
 
     with col2:
-        # Mặc định để rỗng (value=None) để buộc người dùng tự chọn;
-        # max_value=date.today() chặn chọn ngày tương lai ngay ở tầng UI.
-        ngay_cap = st.date_input(
-            "Ngày cấp *", value=None, format="DD/MM/YYYY", max_value=date.today()
-        )
+        # Ngày cấp KHÔNG bắt buộc: người đăng ký được để trống, và không kiểm soát
+        # ngày tương lai (không dùng max_value) nên không có ràng buộc nào ở tầng UI.
+        ngay_cap = st.date_input("Ngày cấp", value=None, format="DD/MM/YYYY")
 
     # Nơi cấp là cơ quan cấp Chứng chỉ hành nghề dược (Sở Y tế tỉnh), không phải
     # cơ quan cấp CCCD/cư trú. Vẫn để text_input để người dùng tự gõ tên Sở của

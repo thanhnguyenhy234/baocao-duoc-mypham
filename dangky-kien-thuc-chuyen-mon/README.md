@@ -2,8 +2,8 @@
 
 Ứng dụng Streamlit **một trang** thu thập phiếu đăng ký học **Cập nhật kiến thức chuyên môn dược**, dựng theo cùng mẫu với app đăng ký hội thảo ung bướu trong repo này. Mở URL là thấy ngay **form đăng ký** — không còn trang giới thiệu riêng, không còn tab chuyển trang; thông tin khóa học chỉ là phần header rút gọn (`st.title` / `st.caption` / `st.info`) ở đầu form. `app.py` dùng `st.navigation` để trang đăng ký là trang mặc định ở đường dẫn `/`.
 
-- thu thập thông tin người đăng ký theo đúng 6 trường bắt buộc, form chia 2 khối rõ ràng
-- kiểm tra hợp lệ dữ liệu ngay trên form (số Chứng chỉ hành nghề dược, ngày cấp, số điện thoại)
+- thu thập thông tin người đăng ký theo đúng 6 trường (5 trường bắt buộc + ngày cấp CCHND không bắt buộc), form chia 2 khối rõ ràng
+- kiểm tra hợp lệ dữ liệu ngay trên form (số Chứng chỉ hành nghề dược, số điện thoại)
 - lưu danh sách đăng ký (Google Sheets, tự động chuyển sang CSV cục bộ nếu chưa cấu hình)
 - gửi thông báo về Discord bằng webhook
 
@@ -20,7 +20,7 @@ Form chia **2 khối** (dùng `st.subheader` + `st.divider`), số CCHND + ngày
 | Khối | # | Trường | Bắt buộc | Kiểm tra hợp lệ |
 |------|---|--------|----------|-----------------|
 | 1. Thông tin chứng chỉ hành nghề dược | 1 | Số Chứng chỉ hành nghề dược | ✅ | Chuỗi tự do do người đăng ký nhập theo đúng chứng chỉ thật (ví dụ `12345`, `12345/PTH-2024`, `V-PTH-00123`); chỉ bắt buộc không để trống, không kiểm tra định dạng, độ dài hay ký tự |
-| 1. Thông tin chứng chỉ hành nghề dược | 2 | Ngày cấp | ✅ (bắt buộc tự chọn) | `st.date_input(value=None, max_value=date.today())` — không có giá trị mặc định, phải tự chọn ngày; không được sau ngày hôm nay |
+| 1. Thông tin chứng chỉ hành nghề dược | 2 | Ngày cấp | ❌ (không bắt buộc) | `st.date_input(value=None, format="DD/MM/YYYY")` — được phép để trống; không kiểm soát gì thêm (không chặn ngày tương lai), ngày cấp rỗng được lưu thành ô trống trong CSV |
 | 1. Thông tin chứng chỉ hành nghề dược | 3 | Nơi cấp | ✅ | Không được để trống. Đây là cơ quan cấp **Chứng chỉ hành nghề dược** (Sở Y tế tỉnh/thành phố), **không phải** cơ quan cấp CCCD/cư trú. Gợi ý trong ô nhập: `Ví dụ: Sở Y tế tỉnh Vĩnh Phúc`; người dùng tự gõ tên Sở của tỉnh mình (ô nhập tự do, không phải selectbox) |
 | 2. Thông tin người đăng ký | 4 | Họ và tên | ✅ | Không được để trống |
 | 2. Thông tin người đăng ký | 5 | Số điện thoại | ✅ | Gồm 10 số, bắt đầu bằng số 0 (dạng `0XXXXXXXXX`) |
@@ -31,7 +31,7 @@ Logic kiểm tra nằm trong `utils/validators.py` (`validate_registration` tr�
 
 - **Số Chứng chỉ hành nghề dược (CCHND):** chuỗi tự do do người đăng ký nhập theo đúng chứng chỉ thật, ví dụ `12345`, `12345/PTH-2024`, `V-PTH-00123`, `PT-CT-4567`. Không kiểm tra định dạng, độ dài hay thành phần ký tự — chỉ bắt buộc không để trống (kể cả khi chỉ gõ khoảng trắng). Lý do: mỗi Sở Y tế cấp CCHND theo mẫu riêng nên định dạng không thống nhất, siết quy tắc sẽ chặn nhầm người đăng ký hợp lệ.
 - **Nơi cấp:** bắt buộc, chỉ kiểm tra không được để trống; là cơ quan cấp CCHND (**Sở Y tế** tỉnh/thành phố), không phải công an/cơ quan cấp CCCD. Ô nhập để tự do kèm placeholder `Ví dụ: Sở Y tế tỉnh Vĩnh Phúc` — cố ý không dùng selectbox và không validate cứng theo danh sách tỉnh vì người đăng ký có thể thuộc tỉnh khác.
-- **Ngày cấp:** bắt buộc phải chọn, không được để trống và không được sau ngày hôm nay.
+- **Ngày cấp (CCHND):** KHÔNG bắt buộc — người đăng ký được để trống. Không kiểm soát ngày cấp (không chặn ngày tương lai, không kiểm tra định dạng đầu vào ở tầng validate); khi để trống thì lưu ô rỗng trong CSV và hiển thị `—` trên thông báo Discord.
 - **Số điện thoại:** gồm đúng 10 số và bắt đầu bằng số 0 (dạng `0XXXXXXXXX`).
 
 ## Cấu trúc thư mục
@@ -91,7 +91,7 @@ Thứ tự cột trong cả hai chế độ:
 
 `Thời gian đăng ký`, `Họ và tên`, `Số Chứng chỉ hành nghề dược`, `Ngày cấp`, `Nơi cấp`, `Địa chỉ thường trú`, `Số điện thoại`, `Khóa học`
 
-Ngày cấp được lưu ở định dạng `dd/mm/yyyy`.
+Ngày cấp được lưu ở định dạng `dd/mm/yyyy`; nếu người đăng ký để trống thì ô này để rỗng.
 
 ## Gửi Discord
 
